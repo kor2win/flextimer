@@ -5,10 +5,10 @@ import flextimer.turnFlow.*;
 
 public class Timer {
     private boolean isStarted = false;
-    private TurnFlow turnFlow;
+    private final TurnFlow turnFlow;
 
-    public Timer(Player[] players) {
-        turnFlow = new StraightTurnFlow(players, 1);
+    public Timer(TurnFlow turnFlow) {
+        this.turnFlow = turnFlow;
     }
 
     public void start() throws StartWhenStarted {
@@ -19,11 +19,7 @@ public class Timer {
         isStarted = true;
     }
 
-    public void passTurn() throws PassTurnWhenPaused {
-        if (!isStarted) {
-            throw new PassTurnWhenPaused();
-        }
-
+    public void passTurn() {
         turnFlow.passTurn();
     }
 

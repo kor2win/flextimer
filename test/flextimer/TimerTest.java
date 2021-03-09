@@ -1,9 +1,7 @@
 package flextimer;
 
-import flextimer.exception.PassTurnWhenPaused;
-import flextimer.exception.PauseWhenPaused;
-import flextimer.exception.StartWhenStarted;
-import flextimer.exception.InvalidTimerAction;
+import flextimer.exception.*;
+import flextimer.turnFlow.TurnFlow;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,17 +10,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TimerTest {
     private static Player[] players;
+    private static Player firstPlayer;
+    private static Player secondPlayer;
 
     private Timer timer;
 
     @BeforeAll
     public static void setUpPlayers() {
         players = buildPlayers();
+        firstPlayer = players[0];
+        secondPlayer = players[1];
     }
 
     @BeforeEach
     public void setUpTimer() {
-        timer = new Timer(players);
+        timer = new Timer(buildMockTurnFlow());
     }
 
     private static Player[] buildPlayers() {
@@ -32,16 +34,43 @@ public class TimerTest {
         };
     }
 
+    private TurnFlow buildMockTurnFlow() {
+        return new TurnFlow(players, 1) {
+            protected boolean isLastPhase() {
+                return true;
+            }
+
+            protected boolean isLastPlayer() {
+                return playerIndex + 1 == players.length;
+            }
+
+            protected void nextTurn() {
+                turnNumber++;
+            }
+
+            protected void nextPhase() {
+                phase = 1;
+                playerIndex++;
+            }
+
+            protected void nextPlayer() {
+                playerIndex++;
+            }
+        };
+    }
+
     @Test
-    void canStartThenPauseThenResume() throws InvalidTimerAction {
+    public void canStartThenPauseThenResume() throws InvalidTimerAction {
         timer.start();
         timer.pause();
         timer.start();
     }
 
     @Test
-    public void whenPassTurnWithoutStart_thenExceptionThrown() {
-        assertThrows(PassTurnWhenPaused.class, timer::passTurn);
+    public void canPassTurn() {
+        assertEquals(firstPlayer, timer.currentTurn().player());
+        timer.passTurn();
+        assertEquals(secondPlayer, timer.currentTurn().player());
     }
 
     @Test
