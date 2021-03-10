@@ -1,6 +1,6 @@
-package flextimer;
+package flextimer.timeBank;
 
-import flextimer.exception.UnknownPlayer;
+import flextimer.player.Player;
 
 import java.time.Duration;
 import java.util.HashMap;

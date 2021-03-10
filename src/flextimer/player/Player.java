@@ -1,4 +1,4 @@
-package flextimer;
+package flextimer.player;
 
 public class Player {
     public final String name;

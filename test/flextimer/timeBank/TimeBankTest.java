@@ -1,7 +1,6 @@
-package flextimer;
+package flextimer.timeBank;
 
-import flextimer.exception.TimeBankException;
-import flextimer.exception.UnknownPlayer;
+import flextimer.player.Player;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,14 +1,21 @@
 package flextimer;
 
-import flextimer.exception.*;
-import flextimer.turnFlow.*;
+import flextimer.exception.PauseWhenPaused;
+import flextimer.exception.StartWhenStarted;
+import flextimer.player.PlayersOrder;
+import flextimer.player.UnknownPlayer;
+import flextimer.timerTurnFlow.TimerTurn;
+import flextimer.timerTurnFlow.TimerTurnFlow;
 
 public class Timer {
-    private boolean isStarted = false;
-    private final TurnFlow turnFlow;
+    private final PlayersOrder playersOrder;
+    private final TimerTurnFlow timerTurnFlow;
 
-    public Timer(TurnFlow turnFlow) {
-        this.turnFlow = turnFlow;
+    private boolean isStarted = false;
+
+    public Timer(PlayersOrder playersOrder, TimerTurnFlow timerTurnFlow) {
+        this.playersOrder = playersOrder;
+        this.timerTurnFlow = timerTurnFlow;
     }
 
     public void start() throws StartWhenStarted {
@@ -19,8 +26,8 @@ public class Timer {
         isStarted = true;
     }
 
-    public void passTurn() {
-        turnFlow.passTurn();
+    public void passTurn() throws UnknownPlayer {
+        timerTurnFlow.passTurn();
     }
 
     public void pause() throws PauseWhenPaused {
@@ -31,8 +38,8 @@ public class Timer {
         isStarted = false;
     }
 
-    public Turn currentTurn() {
-        return turnFlow.currentTurn();
+    public TimerTurn currentTurn() {
+        return timerTurnFlow.timerTurn();
     }
 }
 

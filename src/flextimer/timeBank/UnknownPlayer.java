@@ -1,6 +1,6 @@
-package flextimer.exception;
+package flextimer.timeBank;
 
-import flextimer.Player;
+import flextimer.player.Player;
 
 public class UnknownPlayer extends TimeBankException {
     public final Player player;

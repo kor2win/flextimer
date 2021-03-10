@@ -1,7 +1,10 @@
 package flextimer;
 
 import flextimer.exception.*;
-import flextimer.turnFlow.TurnFlow;
+import flextimer.player.Player;
+import flextimer.player.PlayersOrder;
+import flextimer.player.UnknownPlayer;
+import flextimer.timerTurnFlow.TimerTurnFlow;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,52 +12,56 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TimerTest {
-    private static Player[] players;
+    private static PlayersOrder playersOrder;
     private static Player firstPlayer;
     private static Player secondPlayer;
 
     private Timer timer;
 
     @BeforeAll
-    public static void setUpPlayers() {
-        players = buildPlayers();
-        firstPlayer = players[0];
-        secondPlayer = players[1];
+    public static void setUpPlayers() throws Exception {
+        playersOrder = buildPlayers();
+        firstPlayer = playersOrder.first();
+        secondPlayer = playersOrder.after(firstPlayer);
     }
 
     @BeforeEach
     public void setUpTimer() {
-        timer = new Timer(buildMockTurnFlow());
+        timer = new Timer(playersOrder, buildMockTurnFlow());
     }
 
-    private static Player[] buildPlayers() {
-        return new Player[] {
+    private static PlayersOrder buildPlayers() {
+        var arr = new Player[] {
                 new Player("Anton", 0x00FF00),
                 new Player("Max", 0xFF0000)
         };
+
+        return new PlayersOrder(arr);
     }
 
-    private TurnFlow buildMockTurnFlow() {
-        return new TurnFlow(players, 1) {
+    private TimerTurnFlow buildMockTurnFlow() {
+        return new TimerTurnFlow(playersOrder, 1) {
             protected boolean isLastPhase() {
                 return true;
             }
 
             protected boolean isLastPlayer() {
-                return playerIndex + 1 == players.length;
+                return playersOrder.last().equals(player);
             }
 
             protected void nextTurn() {
                 turnNumber++;
+                phase = 1;
+                player = playersOrder.first();
             }
 
             protected void nextPhase() {
                 phase = 1;
-                playerIndex++;
+                player = playersOrder.first();
             }
 
-            protected void nextPlayer() {
-                playerIndex++;
+            protected void nextPlayer() throws UnknownPlayer {
+                player = playersOrder.after(player);
             }
         };
     }
@@ -67,10 +74,10 @@ public class TimerTest {
     }
 
     @Test
-    public void canPassTurn() {
-        assertEquals(firstPlayer, timer.currentTurn().player());
+    public void canPassTurn() throws Exception {
+        assertEquals(firstPlayer, timer.currentTurn().player);
         timer.passTurn();
-        assertEquals(secondPlayer, timer.currentTurn().player());
+        assertEquals(secondPlayer, timer.currentTurn().player);
     }
 
     @Test
