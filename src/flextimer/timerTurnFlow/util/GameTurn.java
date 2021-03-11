@@ -1,4 +1,4 @@
-package flextimer;
+package flextimer.timerTurnFlow.util;
 
 public class GameTurn {
     public final int turnNumber;

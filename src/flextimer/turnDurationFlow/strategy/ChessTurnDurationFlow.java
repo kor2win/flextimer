@@ -1,6 +1,6 @@
 package flextimer.turnDurationFlow.strategy;
 
-import flextimer.GameTurn;
+import flextimer.timerTurnFlow.util.GameTurn;
 import flextimer.turnDurationFlow.util.StartedTurnDuration;
 import flextimer.turnDurationFlow.TurnDurationFlow;
 import flextimer.turnDurationFlow.util.ChessTurnDurationIncrementsReader;

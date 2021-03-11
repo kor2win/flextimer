@@ -1,10 +1,10 @@
-package flextimer;
+package flextimer.timer;
 
 import flextimer.exception.PauseWhenPaused;
 import flextimer.exception.StartWhenStarted;
 import flextimer.player.PlayersOrder;
 import flextimer.player.UnknownPlayer;
-import flextimer.timerTurnFlow.TimerTurn;
+import flextimer.timerTurnFlow.util.TimerTurn;
 import flextimer.timerTurnFlow.TimerTurnFlow;
 
 public class Timer {

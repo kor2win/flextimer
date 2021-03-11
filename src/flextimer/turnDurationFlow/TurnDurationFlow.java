@@ -1,6 +1,6 @@
 package flextimer.turnDurationFlow;
 
-import flextimer.GameTurn;
+import flextimer.timerTurnFlow.util.GameTurn;
 import flextimer.turnDurationFlow.util.StartedTurnDuration;
 
 import java.time.Duration;

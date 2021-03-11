@@ -1,9 +1,10 @@
 package flextimer.timerTurnFlow;
 
-import flextimer.GameTurn;
+import flextimer.timerTurnFlow.util.GameTurn;
 import flextimer.player.Player;
 import flextimer.player.PlayersOrder;
 import flextimer.player.UnknownPlayer;
+import flextimer.timerTurnFlow.util.TimerTurn;
 
 public abstract class TimerTurnFlow {
     protected final PlayersOrder playersOrder;

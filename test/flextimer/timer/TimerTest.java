@@ -1,4 +1,4 @@
-package flextimer;
+package flextimer.timer;
 
 import flextimer.exception.*;
 import flextimer.player.Player;

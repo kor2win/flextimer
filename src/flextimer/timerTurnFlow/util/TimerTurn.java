@@ -1,6 +1,5 @@
-package flextimer.timerTurnFlow;
+package flextimer.timerTurnFlow.util;
 
-import flextimer.GameTurn;
 import flextimer.player.Player;
 
 public class TimerTurn {

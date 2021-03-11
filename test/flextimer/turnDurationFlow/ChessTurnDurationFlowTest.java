@@ -1,6 +1,6 @@
 package flextimer.turnDurationFlow;
 
-import flextimer.GameTurn;
+import flextimer.timerTurnFlow.util.GameTurn;
 import flextimer.turnDurationFlow.exception.NegativeIncrement;
 import flextimer.turnDurationFlow.exception.TurnDurationException;
 import flextimer.turnDurationFlow.strategy.ChessTurnDurationFlow;

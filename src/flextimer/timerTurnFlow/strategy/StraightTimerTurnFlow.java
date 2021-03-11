@@ -1,8 +1,9 @@
-package flextimer.timerTurnFlow;
+package flextimer.timerTurnFlow.strategy;
 
 import flextimer.player.Player;
 import flextimer.player.PlayersOrder;
 import flextimer.player.UnknownPlayer;
+import flextimer.timerTurnFlow.TimerTurnFlow;
 
 public class StraightTimerTurnFlow extends TimerTurnFlow {
     public StraightTimerTurnFlow(PlayersOrder playersOrder, int maxPhases) {
