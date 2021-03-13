@@ -1,4 +1,6 @@
-package flextimer.player;
+package flextimer.player.exception;
+
+import flextimer.player.Player;
 
 public class UnknownPlayer extends PlayerException {
     public final Player player;

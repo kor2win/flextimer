@@ -3,7 +3,7 @@ package flextimer.timerTurnFlow;
 import flextimer.timerTurnFlow.util.GameTurn;
 import flextimer.player.Player;
 import flextimer.player.PlayersOrder;
-import flextimer.player.UnknownPlayer;
+import flextimer.player.exception.UnknownPlayer;
 import flextimer.timerTurnFlow.util.TimerTurn;
 
 public abstract class TimerTurnFlow {

@@ -1,15 +1,15 @@
 package flextimer.turnDurationFlow.strategy;
 
 import flextimer.timerTurnFlow.util.GameTurn;
-import flextimer.turnDurationFlow.TurnDurationFlow;
+import flextimer.turnDurationFlow.TurnDurationCalculator;
 import flextimer.turnDurationFlow.util.ChessTurnDurationIncrementsReader;
 
 import java.time.Duration;
 
-public class ChessTurnDurationFlow implements TurnDurationFlow {
+public class ChessTurnDurationCalculator implements TurnDurationCalculator {
     private final ChessTurnDurationIncrementsReader increments;
 
-    public ChessTurnDurationFlow(ChessTurnDurationIncrementsReader increments) {
+    public ChessTurnDurationCalculator(ChessTurnDurationIncrementsReader increments) {
         this.increments = increments;
     }
 

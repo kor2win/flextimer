@@ -3,11 +3,10 @@ package flextimer.timer;
 import flextimer.exception.*;
 import flextimer.player.Player;
 import flextimer.player.PlayersOrder;
-import flextimer.player.UnknownPlayer;
+import flextimer.player.exception.UnknownPlayer;
 import flextimer.timeBank.TimeBank;
 import flextimer.timerTurnFlow.TimerTurnFlow;
-import flextimer.timerTurnFlow.util.GameTurn;
-import flextimer.turnDurationFlow.TurnDurationFlow;
+import flextimer.turnDurationFlow.TurnDurationCalculator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +81,7 @@ public class TimerTest {
         };
     }
 
-    private TurnDurationFlow buildMockTurnDurationFlow() {
+    private TurnDurationCalculator buildMockTurnDurationFlow() {
         return (gameTurn, remainingBeforeStart) -> remainingBeforeStart;
     }
 

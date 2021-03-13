@@ -2,7 +2,7 @@ package flextimer.timerTurnFlow.strategy;
 
 import flextimer.player.Player;
 import flextimer.player.PlayersOrder;
-import flextimer.player.UnknownPlayer;
+import flextimer.player.exception.UnknownPlayer;
 import flextimer.timerTurnFlow.TimerTurnFlow;
 
 public class RotatingTimerTurnFlow extends TimerTurnFlow {

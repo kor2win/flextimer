@@ -2,11 +2,11 @@ package flextimer.timer;
 
 import flextimer.exception.PauseWhenPaused;
 import flextimer.exception.StartWhenStarted;
-import flextimer.player.UnknownPlayer;
+import flextimer.player.exception.UnknownPlayer;
 import flextimer.timeBank.TimeBank;
 import flextimer.timerTurnFlow.util.TimerTurn;
 import flextimer.timerTurnFlow.TimerTurnFlow;
-import flextimer.turnDurationFlow.TurnDurationFlow;
+import flextimer.turnDurationFlow.TurnDurationCalculator;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -17,14 +17,14 @@ public class Timer {
     protected Clock clock = Clock.system(ZoneId.systemDefault());
 
     private final TimerTurnFlow timerTurnFlow;
-    private final TurnDurationFlow durationFlow;
+    private final TurnDurationCalculator durationFlow;
     private final TimeBank timeBank;
 
     private boolean isStarted = false;
     private Instant turnStartTime = null;
     private Duration currentTurnRemaining;
 
-    public Timer(TimerTurnFlow timerTurnFlow, TurnDurationFlow durationFlow, TimeBank timeBank) {
+    public Timer(TimerTurnFlow timerTurnFlow, TurnDurationCalculator durationFlow, TimeBank timeBank) {
         this.timerTurnFlow = timerTurnFlow;
         this.durationFlow = durationFlow;
         this.timeBank = timeBank;

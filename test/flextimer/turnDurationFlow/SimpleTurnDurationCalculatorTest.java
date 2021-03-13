@@ -1,7 +1,7 @@
 package flextimer.turnDurationFlow;
 
 import flextimer.timerTurnFlow.util.GameTurn;
-import flextimer.turnDurationFlow.strategy.SimpleTurnDurationFlow;
+import flextimer.turnDurationFlow.strategy.SimpleTurnDurationCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,13 +9,13 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SimpleTurnDurationFlowTest {
+public class SimpleTurnDurationCalculatorTest {
 
-    private SimpleTurnDurationFlow flow;
+    private SimpleTurnDurationCalculator flow;
 
     @BeforeEach
     public void setUp() {
-        flow = new SimpleTurnDurationFlow();
+        flow = new SimpleTurnDurationCalculator();
     }
 
     @Test

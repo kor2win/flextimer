@@ -1,5 +1,7 @@
 package flextimer.player;
 
+import flextimer.player.exception.UnknownPlayer;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 

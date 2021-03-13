@@ -3,7 +3,7 @@ package flextimer.turnDurationFlow;
 import flextimer.timerTurnFlow.util.GameTurn;
 import flextimer.turnDurationFlow.exception.NegativeIncrement;
 import flextimer.turnDurationFlow.exception.TurnDurationException;
-import flextimer.turnDurationFlow.strategy.ChessTurnDurationFlow;
+import flextimer.turnDurationFlow.strategy.ChessTurnDurationCalculator;
 import flextimer.turnDurationFlow.util.ChessTurnDurationIncrements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,19 +13,19 @@ import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ChessTurnDurationFlowTest {
+public class ChessTurnDurationCalculatorTest {
     private static final Duration remainingBeforeStart = Duration.ofSeconds(10);
     private static final GameTurn t1ph1 = new GameTurn(1, 1);
     private static final GameTurn t1ph2 = new GameTurn(1, 2);
     private static final GameTurn t2ph1 = new GameTurn(2, 1);
 
-    private ChessTurnDurationFlow flow;
+    private ChessTurnDurationCalculator flow;
     private ChessTurnDurationIncrements increments;
 
     @BeforeEach
     public void setUp() {
         increments = new ChessTurnDurationIncrements();
-        flow = new ChessTurnDurationFlow(increments);
+        flow = new ChessTurnDurationCalculator(increments);
     }
 
     @Test
