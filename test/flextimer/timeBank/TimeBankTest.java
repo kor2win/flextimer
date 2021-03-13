@@ -26,7 +26,7 @@ public class TimeBankTest {
     }
 
     @Test
-    public void canStoreSeveralPlayersTime() throws TimeBankException {
+    public void canStoreSeveralPlayersTime() {
         final int s1 = 5;
         final int s2 = 7;
 
@@ -38,7 +38,7 @@ public class TimeBankTest {
     }
 
     @Test
-    public void whenUnknownPlayerRequested_thenExceptionThrown() {
-        assertThrows(UnknownPlayer.class, () -> bank.remainingTime(player_one));
+    public void zeroDurationForUnknownPlayer() {
+        assertEquals(Duration.ZERO, bank.remainingTime(player_one));
     }
 }

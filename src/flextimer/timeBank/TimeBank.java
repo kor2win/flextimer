@@ -3,20 +3,16 @@ package flextimer.timeBank;
 import flextimer.player.Player;
 
 import java.time.Duration;
-import java.util.HashMap;
+import java.util.Hashtable;
 
 public class TimeBank {
-    private final HashMap<Player, Duration> playerDuration = new HashMap<>();
+    private final Hashtable<Player, Duration> playerDuration = new Hashtable<>();
 
     public void playerTime(Player player, Duration duration) {
         playerDuration.put(player, duration);
     }
 
-    public Duration remainingTime(Player player) throws UnknownPlayer {
-        if (!playerDuration.containsKey(player)) {
-            throw new UnknownPlayer(player);
-        }
-
-        return playerDuration.get(player);
+    public Duration remainingTime(Player player) {
+        return playerDuration.getOrDefault(player, Duration.ZERO);
     }
 }
