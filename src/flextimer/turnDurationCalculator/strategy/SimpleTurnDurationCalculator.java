@@ -1,7 +1,7 @@
-package flextimer.turnDurationFlow.strategy;
+package flextimer.turnDurationCalculator.strategy;
 
 import flextimer.timerTurnFlow.util.GameTurn;
-import flextimer.turnDurationFlow.TurnDurationCalculator;
+import flextimer.turnDurationCalculator.TurnDurationCalculator;
 
 import java.time.Duration;
 

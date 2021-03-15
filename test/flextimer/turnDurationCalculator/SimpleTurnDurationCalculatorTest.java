@@ -1,7 +1,7 @@
-package flextimer.turnDurationFlow;
+package flextimer.turnDurationCalculator;
 
 import flextimer.timerTurnFlow.util.GameTurn;
-import flextimer.turnDurationFlow.strategy.SimpleTurnDurationCalculator;
+import flextimer.turnDurationCalculator.strategy.SimpleTurnDurationCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

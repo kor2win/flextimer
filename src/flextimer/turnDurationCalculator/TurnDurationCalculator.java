@@ -1,4 +1,4 @@
-package flextimer.turnDurationFlow;
+package flextimer.turnDurationCalculator;
 
 import flextimer.timerTurnFlow.util.GameTurn;
 

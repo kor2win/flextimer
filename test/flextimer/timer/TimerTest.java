@@ -6,9 +6,10 @@ import flextimer.player.PlayersOrder;
 import flextimer.player.exception.UnknownPlayer;
 import flextimer.timeBank.TimeBank;
 import flextimer.timerTurnFlow.TimerTurnFlow;
-import flextimer.turnDurationFlow.TurnDurationCalculator;
+import flextimer.turnDurationCalculator.TurnDurationCalculator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -19,9 +20,13 @@ import java.time.ZoneId;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TimerTest {
+    private static final long MILLIS_DELTA = 40;
+
     private static PlayersOrder playersOrder;
     private static Player p1;
     private static Player p2;
+    private static Duration p1_initDuration;
+    private static Duration p2_initDuration;
 
     private Timer timer;
     private TimeBank timeBank;
@@ -31,6 +36,8 @@ public class TimerTest {
         playersOrder = buildPlayers();
         p1 = playersOrder.first();
         p2 = playersOrder.after(p1);
+        p1_initDuration = Duration.ofSeconds(20);
+        p2_initDuration = Duration.ofSeconds(30);
     }
 
     @BeforeEach
@@ -38,7 +45,7 @@ public class TimerTest {
         timeBank = buildTimeBank();
         timer = new Timer(
                 buildMockTimerTurnFlow(),
-                buildMockTurnDurationFlow(),
+                buildMockTurnDurationCalculator(),
                 timeBank
         );
 
@@ -81,17 +88,24 @@ public class TimerTest {
         };
     }
 
-    private TurnDurationCalculator buildMockTurnDurationFlow() {
+    private TurnDurationCalculator buildMockTurnDurationCalculator() {
         return (gameTurn, remainingBeforeStart) -> remainingBeforeStart;
     }
 
     private TimeBank buildTimeBank() {
         TimeBank timeBank = new TimeBank();
 
-        timeBank.playerTime(p1, Duration.ofSeconds(20));
-        timeBank.playerTime(p2, Duration.ofSeconds(30));
+        timeBank.playerTime(p1, p1_initDuration);
+        timeBank.playerTime(p2, p2_initDuration);
 
         return timeBank;
+    }
+
+    private void assertDurationEquals(Duration expected, Duration actual) {
+        assertTrue(
+                Math.abs(expected.minus(actual).toMillis()) < MILLIS_DELTA,
+                String.format("expected: %s but was: %s", expected.toString(), actual.toString())
+        );
     }
 
     @Test
@@ -167,5 +181,54 @@ public class TimerTest {
 
         assertEquals(p1beforeStart.minus(p1active), timeBank.remainingTime(p1));
         assertEquals(p2beforeStart.minus(p2active), timer.remainingDuration());
+    }
+
+    @Test
+    public void whenEnabledStopOnTurnPass_thenTimerStoppedAfterTurnPass() throws Exception {
+        timer.setPauseOnTurnPass(true);
+        timer.start();
+        timer.passTurn();
+        assertFalse(timer.isStarted());
+    }
+
+    @Test
+    public void whenTurnPassOnStoppedTimer_thenTimerIsStopped() throws Exception {
+        timer.passTurn();
+        assertFalse(timer.isStarted());
+
+        Duration remainingBeforeTimeSkip = timer.remainingDuration();
+        timer.clock = Clock.offset(timer.clock, Duration.ofSeconds(2));
+        assertEquals(remainingBeforeTimeSkip, timer.remainingDuration());
+    }
+
+    @Test
+    public void whenDurationExceeded_thenTurnPassedToNextPlayer() throws Exception {
+        Duration extra = Duration.ofSeconds(1);
+
+        timer.start();
+        timer.clock = Clock.offset(timer.clock, p1_initDuration.plus(extra));
+
+        timer.passTimeScheduler.waitUntilScheduled();
+
+        assertEquals(p2, timer.currentTurn().player);
+    }
+
+    @Disabled
+    @Test
+    public void whenDurationExceeded_thenRemainingDurationForPlayersCalculated() throws Exception {
+        Duration extra = Duration.ofSeconds(1);
+
+        timer.start();
+        timer.clock = Clock.offset(timer.clock, p1_initDuration.plus(extra));
+        Duration p1_expectedRemaining = Duration.ZERO;
+        Duration p2_expectedRemaining = p2_initDuration.minus(extra);
+
+        timer.passTimeScheduler.waitUntilScheduled();
+
+        Duration p1_actualRemaining = timeBank.remainingTime(p1);
+        Duration p2_actualRemaining = timer.remainingDuration();
+
+        assertDurationEquals(p1_expectedRemaining, p1_actualRemaining);
+        assertDurationEquals(p2_expectedRemaining, p2_actualRemaining);
     }
 }

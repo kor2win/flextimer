@@ -1,10 +1,10 @@
-package flextimer.turnDurationFlow;
+package flextimer.turnDurationCalculator;
 
 import flextimer.timerTurnFlow.util.GameTurn;
-import flextimer.turnDurationFlow.exception.NegativeIncrement;
-import flextimer.turnDurationFlow.exception.TurnDurationException;
-import flextimer.turnDurationFlow.strategy.ChessTurnDurationCalculator;
-import flextimer.turnDurationFlow.util.ChessTurnDurationIncrements;
+import flextimer.turnDurationCalculator.exception.NegativeIncrement;
+import flextimer.turnDurationCalculator.exception.TurnDurationException;
+import flextimer.turnDurationCalculator.strategy.ChessTurnDurationCalculator;
+import flextimer.turnDurationCalculator.util.ChessTurnDurationIncrements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

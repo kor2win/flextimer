@@ -51,7 +51,7 @@ public class RotatingTimerTurnFlowTest {
 
     private void passWholePhase() throws Exception {
         for (int i = 0; i < playersSize(); i++) {
-            flow.passTurn();
+            flow.switchToNextTurn();
         }
     }
 
@@ -64,7 +64,7 @@ public class RotatingTimerTurnFlowTest {
 
     @Test
     public void playerPassesTurn() throws Exception {
-        flow.passTurn();
+        flow.switchToNextTurn();
 
         assertEquals(1, flow.turnNumber());
         assertEquals(1, flow.phase());

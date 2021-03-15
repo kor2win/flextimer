@@ -36,7 +36,7 @@ public abstract class TimerTurnFlow {
 
     abstract protected void nextPlayer() throws UnknownPlayer;
 
-    public void passTurn() throws UnknownPlayer {
+    public void switchToNextTurn() throws UnknownPlayer {
         if (!isLastPlayer()) {
             nextPlayer();
         } else if (!isLastPhase()) {
