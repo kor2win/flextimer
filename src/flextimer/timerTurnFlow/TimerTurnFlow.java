@@ -3,7 +3,6 @@ package flextimer.timerTurnFlow;
 import flextimer.timerTurnFlow.util.GameTurn;
 import flextimer.player.Player;
 import flextimer.player.PlayersOrder;
-import flextimer.player.exception.UnknownPlayer;
 import flextimer.timerTurnFlow.util.TimerTurn;
 
 public abstract class TimerTurnFlow {
@@ -28,15 +27,15 @@ public abstract class TimerTurnFlow {
 
     abstract protected boolean isLastPhase();
 
-    abstract protected boolean isLastPlayer() throws UnknownPlayer;
+    abstract protected boolean isLastPlayer();
 
-    abstract protected void nextTurn() throws UnknownPlayer;
+    abstract protected void nextTurn();
 
     abstract protected void nextPhase();
 
-    abstract protected void nextPlayer() throws UnknownPlayer;
+    abstract protected void nextPlayer();
 
-    public void switchToNextTurn() throws UnknownPlayer {
+    public void switchToNextTurn() {
         if (!isLastPlayer()) {
             nextPlayer();
         } else if (!isLastPhase()) {

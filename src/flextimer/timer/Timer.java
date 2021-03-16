@@ -2,7 +2,6 @@ package flextimer.timer;
 
 import flextimer.exception.PauseWhenPaused;
 import flextimer.exception.StartWhenStarted;
-import flextimer.player.exception.UnknownPlayer;
 import flextimer.timeBank.TimeBank;
 import flextimer.timerTurnFlow.util.TimerTurn;
 import flextimer.timerTurnFlow.TimerTurnFlow;
@@ -37,14 +36,14 @@ public class Timer {
         passTimeScheduler.scheduleTurnPass(continuousTurn().depletedAt());
     }
 
-    public void passTurn() throws UnknownPlayer {
+    public void passTurn() {
         passTimeScheduler.clearScheduler();
         continuousTurn().end(clock.instant());
 
         timerTurnFlow.switchToNextTurn();
         try {
             turnDurationFlow.switchToNewTurn(currentTurn(), clock.instant());
-        } catch (SwitchingToNewTurnWithoutEndingCurrent switchingToNewTurnWithoutEndingCurrent) {
+        } catch (SwitchingToNewTurnWithoutEndingCurrent ignored) {
         }
 
         if (continuousTurn().isTimerGoing()) {
@@ -88,7 +87,7 @@ public class Timer {
             if (thread.isAlive()) {
                 try {
                     thread.join();
-                } catch (InterruptedException e) {
+                } catch (InterruptedException ignored) {
                 }
             }
         }
@@ -99,7 +98,7 @@ public class Timer {
             Runnable passTurn = () -> {
                 while (true) {
                     if (!clock.instant().isBefore(instant)) {
-                        tryPassTurn();
+                        passTurn();
 
                         break;
                     }
@@ -108,13 +107,6 @@ public class Timer {
 
             thread = new Thread(passTurn);
             thread.start();
-        }
-
-        private void tryPassTurn() {
-            try {
-                passTurn();
-            } catch (UnknownPlayer e) {
-            }
         }
 
         private void clearScheduler() {

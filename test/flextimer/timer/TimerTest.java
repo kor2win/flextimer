@@ -82,8 +82,11 @@ public class TimerTest {
                 player = playersOrder.first();
             }
 
-            protected void nextPlayer() throws UnknownPlayer {
-                player = playersOrder.after(player);
+            protected void nextPlayer() {
+                try {
+                    player = playersOrder.after(player);
+                } catch (UnknownPlayer ignored) {
+                }
             }
         };
     }
@@ -116,7 +119,7 @@ public class TimerTest {
     }
 
     @Test
-    public void canPassTurn() throws Exception {
+    public void canPassTurn() {
         assertEquals(p1, timer.currentTurn().player);
         timer.passTurn();
         assertEquals(p2, timer.currentTurn().player);
@@ -192,7 +195,7 @@ public class TimerTest {
     }
 
     @Test
-    public void whenTurnPassOnStoppedTimer_thenTimerIsStopped() throws Exception {
+    public void whenTurnPassOnStoppedTimer_thenTimerIsStopped() {
         timer.passTurn();
         assertFalse(timer.isStarted());
 

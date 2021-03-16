@@ -11,7 +11,6 @@ public class RotatingTimerTurnFlow extends TimerTurnFlow {
     public RotatingTimerTurnFlow(PlayersOrder playersOrder, int maxPhases) {
         super(playersOrder, maxPhases);
 
-        player = playersOrder.first();
         firstPlayer = playersOrder.first();
     }
 
@@ -19,13 +18,20 @@ public class RotatingTimerTurnFlow extends TimerTurnFlow {
         return phase == maxPhases;
     }
 
-    protected boolean isLastPlayer() throws UnknownPlayer {
-        Player lastPlayer = playersOrder.before(firstPlayer);
-        return player.equals(lastPlayer);
+    protected boolean isLastPlayer() {
+        try {
+            Player lastPlayer = playersOrder.before(firstPlayer);
+            return player.equals(lastPlayer);
+        } catch (UnknownPlayer unknownPlayer) {
+            return false;
+        }
     }
 
-    protected void nextTurn() throws UnknownPlayer {
-        firstPlayer = playersOrder.after(firstPlayer);
+    protected void nextTurn() {
+        try {
+            firstPlayer = playersOrder.after(firstPlayer);
+        } catch (UnknownPlayer ignored) {
+        }
 
         turnNumber++;
         phase = 1;
@@ -37,7 +43,10 @@ public class RotatingTimerTurnFlow extends TimerTurnFlow {
         player = firstPlayer;
     }
 
-    protected void nextPlayer() throws UnknownPlayer {
-        player = playersOrder.after(player);
+    protected void nextPlayer() {
+        try {
+            player = playersOrder.after(player);
+        } catch (UnknownPlayer ignored) {
+        }
     }
 }

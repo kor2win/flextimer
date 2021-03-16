@@ -30,7 +30,10 @@ public class StraightTimerTurnFlow extends TimerTurnFlow {
         player = playersOrder.first();
     }
 
-    protected void nextPlayer() throws UnknownPlayer {
-        player = playersOrder.after(player);
+    protected void nextPlayer() {
+        try {
+            player = playersOrder.after(player);
+        } catch (UnknownPlayer ignored) {
+        }
     }
 }
