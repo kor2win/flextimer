@@ -2,10 +2,12 @@ package flextimer.timer;
 
 import flextimer.exception.PauseWhenPaused;
 import flextimer.exception.StartWhenStarted;
+import flextimer.player.Player;
 import flextimer.timeBank.TimeBank;
 import flextimer.timerTurnFlow.util.TimerTurn;
 import flextimer.timerTurnFlow.TimerTurnFlow;
 import flextimer.turnDurationCalculator.TurnDurationCalculator;
+import flextimer.turnDurationFlow.exception.TimerDepleted;
 import flextimer.turnDurationFlow.util.ContinuousTurn;
 import flextimer.turnDurationFlow.exception.SwitchingToNewTurnWithoutEndingCurrent;
 import flextimer.turnDurationFlow.TurnDurationFlow;
@@ -17,14 +19,14 @@ import java.time.ZoneId;
 
 public class Timer {
     protected Clock clock = Clock.system(ZoneId.systemDefault());
-    protected PassTimeScheduler passTimeScheduler = new PassTimeScheduler();
 
+    private final PassTimeScheduler passTimeScheduler = new PassTimeScheduler();
     private final TimerTurnFlow timerTurnFlow;
     private final TurnDurationFlow turnDurationFlow;
 
     public Timer(TimerTurnFlow timerTurnFlow, TurnDurationCalculator turnDurationCalculator, TimeBank timeBank) {
         this.timerTurnFlow = timerTurnFlow;
-        this.turnDurationFlow = new TurnDurationFlow(turnDurationCalculator, timeBank, currentTurn());
+        this.turnDurationFlow = new TurnDurationFlow(turnDurationCalculator, timeBank, currentTurn(), timerTurnFlow);
     }
 
     public void start() throws StartWhenStarted {
@@ -32,22 +34,27 @@ public class Timer {
             throw new StartWhenStarted();
         }
 
-        continuousTurn().startTime(clock.instant());
-        passTimeScheduler.scheduleTurnPass(continuousTurn().depletedAt());
-    }
-
-    public void passTurn() {
-        passTimeScheduler.clearScheduler();
-        continuousTurn().end(clock.instant());
-
-        timerTurnFlow.switchToNextTurn();
-        try {
-            turnDurationFlow.switchToNewTurn(currentTurn(), clock.instant());
-        } catch (SwitchingToNewTurnWithoutEndingCurrent ignored) {
+        if (turnDurationFlow.isDepleted()) {
+            return;
         }
 
+        continuousTurn().startTime(clock.instant());
+        passTimeScheduler.schedule(continuousTurn().depletedAt());
+    }
+
+    public void passTurn() throws TimerDepleted, SwitchingToNewTurnWithoutEndingCurrent {
+        passTimeScheduler.cancel();
+        continuousTurn().end(clock.instant());
+
+        if (turnDurationFlow.isDepleted()) {
+            return;
+        }
+
+        timerTurnFlow.switchToNextTurn();
+        turnDurationFlow.switchToNewTurn(currentTurn(), clock.instant());
+
         if (continuousTurn().isTimerGoing()) {
-            passTimeScheduler.scheduleTurnPass(continuousTurn().depletedAt());
+            passTimeScheduler.schedule(continuousTurn().depletedAt());
         }
     }
 
@@ -56,7 +63,11 @@ public class Timer {
             throw new PauseWhenPaused();
         }
 
-        passTimeScheduler.clearScheduler();
+        if (turnDurationFlow.isDepleted()) {
+            return;
+        }
+
+        passTimeScheduler.cancel();
         continuousTurn().pauseTime(clock.instant());
     }
 
@@ -72,18 +83,38 @@ public class Timer {
         return continuousTurn().remaining(clock.instant());
     }
 
-    public void setPauseOnTurnPass(boolean pauseOnTurnPass) {
+    private ContinuousTurn continuousTurn() {
+        return turnDurationFlow.continuousTurn();
+    }
+
+    public Duration playerRemainingDuration(Player player) {
+        return turnDurationFlow.playerRemainingDuration(player, clock.instant());
+    }
+
+    public boolean isDepleted() {
+        return turnDurationFlow.isDepleted();
+    }
+
+    protected void setPauseOnTurnPass(boolean pauseOnTurnPass) {
         turnDurationFlow.setPauseOnTurnPass(pauseOnTurnPass);
     }
 
-    private ContinuousTurn continuousTurn() {
-        return turnDurationFlow.continuousTurn();
+    protected void setDepleteOnZeroRemaining(boolean depleteOnZeroRemaining) {
+        turnDurationFlow.setDepleteOnZeroRemaining(depleteOnZeroRemaining);
+    }
+
+    protected void cancelScheduledTurnPass() {
+        passTimeScheduler.cancel();
+    }
+
+    protected void waitUntilScheduledTurnPass() {
+        passTimeScheduler.waitUntilScheduledTurnPass();
     }
 
     protected class PassTimeScheduler {
         protected Thread thread = new Thread();
 
-        protected void waitUntilScheduled() {
+        protected void waitUntilScheduledTurnPass() {
             if (thread.isAlive()) {
                 try {
                     thread.join();
@@ -92,13 +123,13 @@ public class Timer {
             }
         }
 
-        private void scheduleTurnPass(Instant instant) {
-            clearScheduler();
+        private void schedule(Instant instant) {
+            cancel();
 
             Runnable passTurn = () -> {
                 while (true) {
                     if (!clock.instant().isBefore(instant)) {
-                        passTurn();
+                        tryPassTurn();
 
                         break;
                     }
@@ -109,7 +140,14 @@ public class Timer {
             thread.start();
         }
 
-        private void clearScheduler() {
+        private void tryPassTurn() {
+            try {
+                passTurn();
+            } catch (Exception ignored) {
+            }
+        }
+
+        private void cancel() {
             if (thread.isAlive()) {
                 thread.interrupt();
             }

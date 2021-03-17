@@ -49,4 +49,8 @@ public class RotatingTimerTurnFlow extends TimerTurnFlow {
         } catch (UnknownPlayer ignored) {
         }
     }
+
+    protected TimerTurnFlow newInstance() {
+        return new RotatingTimerTurnFlow(playersOrder, maxPhases);
+    }
 }

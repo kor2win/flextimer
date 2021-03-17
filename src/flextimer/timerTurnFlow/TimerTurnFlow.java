@@ -1,11 +1,12 @@
 package flextimer.timerTurnFlow;
 
+import flextimer.timerTurnFlow.util.FutureTurnAccessor;
 import flextimer.timerTurnFlow.util.GameTurn;
 import flextimer.player.Player;
 import flextimer.player.PlayersOrder;
 import flextimer.timerTurnFlow.util.TimerTurn;
 
-public abstract class TimerTurnFlow {
+public abstract class TimerTurnFlow implements FutureTurnAccessor {
     protected final PlayersOrder playersOrder;
     protected final int maxPhases;
 
@@ -34,6 +35,8 @@ public abstract class TimerTurnFlow {
     abstract protected void nextPhase();
 
     abstract protected void nextPlayer();
+
+    abstract protected TimerTurnFlow newInstance();
 
     public void switchToNextTurn() {
         if (!isLastPlayer()) {
@@ -71,5 +74,19 @@ public abstract class TimerTurnFlow {
 
     public Player player() {
         return player;
+    }
+
+    public GameTurn nextTurnForPlayer(Player player, GameTurn gameTurn) {
+        TimerTurnFlow instance = this.newInstance();
+
+        while (!instance.gameTurn.equals(gameTurn) || !instance.player().equals(player)) {
+            instance.switchToNextTurn();
+        }
+
+        do {
+            instance.switchToNextTurn();
+        } while (!instance.player().equals(player));
+
+        return instance.gameTurn;
     }
 }

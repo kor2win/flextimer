@@ -10,4 +10,8 @@ public class TimerTurn {
         this.gameTurn = gameTurn;
         this.player = player;
     }
+
+    public boolean equals(TimerTurn t) {
+        return gameTurn.equals(t.gameTurn) && player.equals(t.player);
+    }
 }

@@ -36,4 +36,8 @@ public class StraightTimerTurnFlow extends TimerTurnFlow {
         } catch (UnknownPlayer ignored) {
         }
     }
+
+    protected TimerTurnFlow newInstance() {
+        return new StraightTimerTurnFlow(playersOrder, maxPhases);
+    }
 }

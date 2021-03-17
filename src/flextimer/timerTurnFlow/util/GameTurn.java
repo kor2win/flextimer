@@ -8,4 +8,8 @@ public class GameTurn {
         this.turnNumber = turnNumber;
         this.phase = phase;
     }
+
+    public boolean equals(GameTurn o) {
+        return turnNumber == o.turnNumber && phase == o.phase;
+    }
 }

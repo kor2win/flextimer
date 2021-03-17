@@ -8,4 +8,8 @@ public class Player {
         this.name = name;
         this.colorCode = colorCode;
     }
+
+    public boolean equals(Player p) {
+        return name.equals(p.name) && colorCode == p.colorCode;
+    }
 }
