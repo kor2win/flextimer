@@ -3,23 +3,25 @@ package flextimer.timeConstraint;
 import flextimer.turnFlow.*;
 
 import java.time.*;
+import java.util.concurrent.*;
 
 public class TimeConstraint {
     protected final TurnDurationCalculator turnDurationCalculator;
     protected final TimeBank timeBank;
-    protected final FutureTurnAccessor futureTurnAccessor;
-    protected Duration debt = Duration.ZERO;
-    protected boolean isDepleted = false;
-    protected boolean depleteOnZeroRemaining = false;
+    protected final TurnFlow turnFlow;
 
-    public TimeConstraint(TurnDurationCalculator turnDurationCalculator, TimeBank timeBank, FutureTurnAccessor futureTurnAccessor) {
+    private final ConcurrentHashMap<TimerTurn, Duration> debts = new ConcurrentHashMap<>();
+    private boolean isDepleted = false;
+    private boolean depleteOnZeroRemaining = false;
+
+    public TimeConstraint(TurnDurationCalculator turnDurationCalculator, TimeBank timeBank, TurnFlow turnFlow) {
         this.turnDurationCalculator = turnDurationCalculator;
         this.timeBank = timeBank;
-        this.futureTurnAccessor = futureTurnAccessor;
+        this.turnFlow = turnFlow;
     }
 
     public ConstrainedTimerTurn applyTo(TimerTurn timerTurn) {
-        return new MyConstrainedTimerTurn(timerTurn);
+        return new ConstrainedTimerTurn(timerTurn, this);
     }
 
     public void setDepleteOnZeroRemaining(boolean depleteOnZeroRemaining) {
@@ -34,139 +36,31 @@ public class TimeConstraint {
         return isDepleted;
     }
 
-    private class MyConstrainedTimerTurn implements ConstrainedTimerTurn {
-        private final TimerTurn timerTurn;
-        private Duration remaining;
-        private boolean isTimerGoing = false;
-        private Instant startTime;
-        private boolean isEnded = false;
+    protected void deplete() {
+        isDepleted = true;
+    }
 
-        public MyConstrainedTimerTurn(TimerTurn timerTurn) {
-            this.timerTurn = timerTurn;
+    protected boolean depleteOnZeroRemaining() {
+        return depleteOnZeroRemaining;
+    }
 
-            remaining = turnDurationCalculator.totalTurnDuration(
-                    timerTurn.gameTurn,
-                    timeBank.getAccumulated(timerTurn)
-            );
+    protected Duration popDebt(TimerTurn timerTurn) {
+        Duration r = debts.getOrDefault(timerTurn, Duration.ZERO);
+        debts.remove(timerTurn);
 
-            if (remaining.isZero()) {
-                depleteBank();
-            } else {
-                saveNewRemaining(remaining.minus(debt));
+        return r;
+    }
 
-                if (remaining.isZero()) {
-                    isEnded = true;
-                }
+    protected void rememberDebt(TimerTurn timerTurn, Duration debt) {
+        debts.put(timerTurn, debt);
+    }
 
-                if (isEnoughToDepleteTimer()) {
-                    TimeConstraint.this.isDepleted = true;
-                }
-            }
-        }
-
-        private void depleteBank() {
-            isEnded = true;
-            TimeConstraint.this.isDepleted = true;
-            remaining = Duration.ZERO;
-            timeBank.saveRemainingDuration(timerTurn, Duration.ZERO);
-        }
-
-        @Override
-        public void start(Instant instant) {
-            if (isEnded()) {
-                return;
-            }
-
-            isTimerGoing = true;
-            startTime = instant;
-        }
-
-        @Override
-        public void end(Instant instant) {
-            if (isEnded()) {
-                return;
-            }
-
-            isEnded = true;
-
-            saveNewRemaining(remaining(instant));
-
-            if (isEnoughToDepleteTimer()) {
-                TimeConstraint.this.isDepleted = true;
-            }
-        }
-
-        private void saveNewRemaining(Duration newRemaining) {
-            if (newRemaining.isNegative() || newRemaining.isZero()) {
-                TimeConstraint.this.debt = newRemaining.negated();
-                newRemaining = Duration.ZERO;
-            } else {
-                TimeConstraint.this.debt = Duration.ZERO;
-            }
-
-            remaining = newRemaining;
-            timeBank.saveRemainingDuration(timerTurn, remaining);
-        }
-
-        private boolean isEnoughToDepleteTimer() {
-            if (!remaining.isZero()) {
-                return false;
-            }
-
-            if (depleteOnZeroRemaining) {
-                return true;
-            } else {
-                TimerTurn futureTurn = futureTurnAccessor.nextTurnOfSamePlayer(timerTurn);
-                Duration futureDuration = turnDurationCalculator.totalTurnDuration(futureTurn.gameTurn, Duration.ZERO);
-
-                return futureDuration.isZero();
-            }
-        }
-
-        @Override
-        public void pause(Instant instant) {
-            if (isEnded()) {
-                return;
-            }
-
-            remaining = remaining(instant);
-            isTimerGoing = false;
-        }
-
-        @Override
-        public Instant depletedAt() {
-            return isGoing()
-                    ? startTime.plus(remaining)
-                    : Instant.MAX;
-        }
-
-        @Override
-        public Duration remaining(Instant instant) {
-            Duration elapsed = isGoing()
-                    ? Duration.between(startTime, instant)
-                    : Duration.ZERO;
-
-            return remaining.minus(elapsed);
-        }
-
-        @Override
-        public boolean isGoing() {
-            return isTimerGoing;
-        }
-
-        @Override
-        public boolean isEnded() {
-            return isEnded;
-        }
-
-        @Override
-        public TimerTurn timerTurn() {
-            return timerTurn;
-        }
-
-        @Override
-        public Player player() {
-            return timerTurn.player;
-        }
+    /**
+     * Override to disable remaining recalculation by debt from previous turn.
+     * For instance, this could be useful for simultaneous turns.
+     * @return boolean
+     */
+    protected boolean isDebtsApplyingEnabled() {
+        return true;
     }
 }

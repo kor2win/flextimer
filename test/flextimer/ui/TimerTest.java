@@ -4,6 +4,7 @@ import flextimer.timeConstraint.*;
 import flextimer.turnFlow.*;
 import org.junit.jupiter.api.*;
 import timeBanking.*;
+import turnDurationCalculations.*;
 import turnPassingStrategies.*;
 
 import java.time.*;
@@ -42,6 +43,16 @@ public class TimerTest {
     private Timer buildTimer(TurnPassingStrategy turnPassingStrategy, TurnDurationCalculator turnDurationCalculator) {
         TurnFlow turnFlow = new TurnFlow(playersOrder, turnPassingStrategy, 1);
         TimeConstraint timeConstraint = new TimeConstraint(turnDurationCalculator, buildTimeBank(), turnFlow);
+
+        Timer t = new Timer(turnFlow, timeConstraint);
+        t.clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
+
+        return t;
+    }
+
+    private Timer buildTimerWithEmptyBank(TurnPassingStrategy turnPassingStrategy, TurnDurationCalculator turnDurationCalculator) {
+        TurnFlow turnFlow = new TurnFlow(playersOrder, turnPassingStrategy, 1);
+        TimeConstraint timeConstraint = new TimeConstraint(turnDurationCalculator, new PlayersTimeBank(), turnFlow);
 
         Timer t = new Timer(turnFlow, timeConstraint);
         t.clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
@@ -131,7 +142,7 @@ public class TimerTest {
     public void whenTryingOperateDepletedTimer_thenExceptionThrown() throws Exception {
         t.start();
         shiftTimerClock(t, t.currentRemainingDuration());
-        t.waitUntilScheduledTurnPass();
+        t.syncWithClock();
 
         assertThrows(Depleted.class, t::start);
         assertThrows(Depleted.class, t::pause);
@@ -183,7 +194,7 @@ public class TimerTest {
         tIncremented.setDepleteOnZeroRemaining(true);
         tIncremented.start();
         shiftTimerClock(tIncremented, tIncremented.currentRemainingDuration());
-        tIncremented.waitUntilScheduledTurnPass();
+        tIncremented.syncWithClock();
 
         assertTrue(tIncremented.isDepleted());
     }
@@ -205,7 +216,7 @@ public class TimerTest {
         tIncremented.start();
         shiftTimerClock(tIncremented, p1_initDuration.plus(extra));
 
-        tIncremented.waitUntilScheduledTurnPass();
+        tIncremented.syncWithClock();
 
         assertEquals(p2, tIncremented.currentTurn().player);
     }
@@ -230,12 +241,12 @@ public class TimerTest {
         Duration extra = Duration.ofSeconds(3);
 
         tIncremented.start();
-        tIncremented.cancelScheduledTurnPass();
-
         shiftTimerClock(tIncremented, p1_initDuration.plus(increment).plus(extra));
+
         Duration p2_expectedRemaining = p2_initDuration.plus(increment).minus(extra);
 
         tIncremented.passTurn();
+        assertEquals(p2, tIncremented.currentPlayer());
         assertEquals(p2_expectedRemaining, tIncremented.currentRemainingDuration());
         tIncremented.passTurn();
         assertEquals(increment, tIncremented.currentRemainingDuration());
@@ -248,7 +259,7 @@ public class TimerTest {
         tIncremented.start();
         shiftTimerClock(tIncremented, p1_initDuration.plus(increment).plus(extra));
 
-        tIncremented.waitUntilScheduledTurnPass();
+        tIncremented.syncWithClock();
         tIncremented.pause();
 
         assertEquals(p2, tIncremented.currentPlayer());
@@ -261,10 +272,15 @@ public class TimerTest {
     @Test
     public void depleteTimer() throws Exception {
         t.start();
-        t.cancelScheduledTurnPass();
         shiftTimerClock(t, t.currentRemainingDuration());
         t.passTurn();
 
         assertTrue(t.isDepleted());
+    }
+
+    @Test
+    public void timerWithEmptyBankIsDepleted() {
+        var timer = buildTimerWithEmptyBank(new StraightTurnPassingStrategy(), new SimpleTurnDurationCalculator());
+        assertTrue(timer.isDepleted());
     }
 }

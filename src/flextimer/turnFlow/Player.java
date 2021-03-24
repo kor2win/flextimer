@@ -16,6 +16,13 @@ public class Player {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Player
+                ? this.equals((Player) obj)
+                : super.equals(obj);
+    }
+
+    @Override
     public int hashCode() {
         return hashCode;
     }

@@ -1,6 +1,6 @@
 package flextimer.turnFlow;
 
-public class TurnFlow implements FutureTurnAccessor {
+public class TurnFlow {
     private final PlayersOrder playersOrder;
     private final TurnPassingStrategy turnPassingStrategy;
     private final int numberOfPhases;
@@ -24,7 +24,6 @@ public class TurnFlow implements FutureTurnAccessor {
         return null;
     }
 
-    @Override
     public TimerTurn nextTurnOfSamePlayer(TimerTurn timerTurn) {
         TimerTurn t = this.nextTurn(timerTurn);
 

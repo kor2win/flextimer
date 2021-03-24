@@ -16,6 +16,13 @@ public class TimerTurn {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return obj instanceof TimerTurn
+                ? this.equals((TimerTurn) obj)
+                : super.equals(obj);
+    }
+
+    @Override
     public int hashCode() {
         return hashCode;
     }

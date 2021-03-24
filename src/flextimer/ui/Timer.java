@@ -8,7 +8,6 @@ import java.time.*;
 public class Timer {
     protected Clock clock = Clock.system(ZoneId.systemDefault());
 
-    private final PassTimeScheduler passTimeScheduler = new PassTimeScheduler();
     private final TurnFlow turnFlow;
     private final TimeConstraint timeConstraint;
 
@@ -32,7 +31,6 @@ public class Timer {
         }
 
         constrainedTurn.start(clock.instant());
-        passTimeScheduler.schedule(constrainedTurn.depletedAt());
     }
 
     public void passTurn() throws Depleted {
@@ -42,7 +40,6 @@ public class Timer {
 
         boolean isGoing = constrainedTurn.isGoing();
 
-        passTimeScheduler.cancel();
         constrainedTurn.end(clock.instant());
 
         TimerTurn current = constrainedTurn.timerTurn();
@@ -51,7 +48,6 @@ public class Timer {
 
         if (isGoing && !pauseOnTurnPass) {
             constrainedTurn.start(clock.instant());
-            passTimeScheduler.schedule(constrainedTurn.depletedAt());
         }
     }
 
@@ -64,7 +60,6 @@ public class Timer {
             throw new PauseWhenPaused();
         }
 
-        passTimeScheduler.cancel();
         constrainedTurn.pause(clock.instant());
     }
 
@@ -98,58 +93,24 @@ public class Timer {
         timeConstraint.setDepleteOnZeroRemaining(depleteOnZeroRemaining);
     }
 
-    protected void cancelScheduledTurnPass() {
-        passTimeScheduler.cancel();
-    }
-
-    protected void waitUntilScheduledTurnPass() {
-        passTimeScheduler.waitUntilScheduledTurnPass();
-    }
-
     public Player currentPlayer() {
         return constrainedTurn.player();
     }
 
-    protected class PassTimeScheduler {
-        protected Thread thread = new Thread();
-
-        protected void waitUntilScheduledTurnPass() {
-            if (thread.isAlive()) {
-                try {
-                    thread.join();
-                } catch (InterruptedException ignored) {
-                }
-            }
+    public void syncWithClock() {
+        if (isDepleted()) {
+            return;
         }
 
-        private void schedule(Instant instant) {
-            cancel();
-
-            Runnable passTurn = () -> {
-                while (true) {
-                    if (!clock.instant().isBefore(instant)) {
-                        tryPassTurn();
-
-                        break;
-                    }
-                }
-            };
-
-            thread = new Thread(passTurn);
-            thread.start();
+        if (constrainedTurn.isDepletedAt(clock.instant())) {
+            tryPassTurn();
         }
+    }
 
-        private void tryPassTurn() {
-            try {
-                passTurn();
-            } catch (Exception ignored) {
-            }
-        }
-
-        private void cancel() {
-            if (thread.isAlive()) {
-                thread.interrupt();
-            }
+    private void tryPassTurn() {
+        try {
+            passTurn();
+        } catch (Depleted ignored) {
         }
     }
 }
