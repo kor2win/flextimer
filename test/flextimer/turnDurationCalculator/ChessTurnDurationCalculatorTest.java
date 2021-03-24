@@ -1,6 +1,6 @@
 package flextimer.turnDurationCalculator;
 
-import flextimer.timerTurnFlow.util.GameTurn;
+import flextimer.turnFlow.util.GameTurn;
 import flextimer.turnDurationCalculator.exception.NegativeIncrement;
 import flextimer.turnDurationCalculator.exception.TurnDurationException;
 import flextimer.turnDurationCalculator.strategy.ChessTurnDurationCalculator;
@@ -33,8 +33,8 @@ public class ChessTurnDurationCalculatorTest {
         Duration ph1Increment = Duration.ofSeconds(5);
         increments.setPhaseIncrement(1, ph1Increment);
 
-        assertEquals(remainingBeforeStart.plus(ph1Increment), flow.remainingAfterTurnStart(t1ph1, remainingBeforeStart));
-        assertEquals(remainingBeforeStart, flow.remainingAfterTurnStart(t1ph2, remainingBeforeStart));
+        assertEquals(remainingBeforeStart.plus(ph1Increment), flow.totalTurnDuration(t1ph1, remainingBeforeStart));
+        assertEquals(remainingBeforeStart, flow.totalTurnDuration(t1ph2, remainingBeforeStart));
     }
 
     @Test
@@ -42,9 +42,9 @@ public class ChessTurnDurationCalculatorTest {
         Duration t1Increment = Duration.ofSeconds(5);
         increments.setTurnIncrement(1, t1Increment);
 
-        assertEquals(remainingBeforeStart.plus(t1Increment), flow.remainingAfterTurnStart(t1ph1, remainingBeforeStart));
-        assertEquals(remainingBeforeStart, flow.remainingAfterTurnStart(t1ph2, remainingBeforeStart));
-        assertEquals(remainingBeforeStart, flow.remainingAfterTurnStart(t2ph1, remainingBeforeStart));
+        assertEquals(remainingBeforeStart.plus(t1Increment), flow.totalTurnDuration(t1ph1, remainingBeforeStart));
+        assertEquals(remainingBeforeStart, flow.totalTurnDuration(t1ph2, remainingBeforeStart));
+        assertEquals(remainingBeforeStart, flow.totalTurnDuration(t2ph1, remainingBeforeStart));
     }
 
     @Test
@@ -54,8 +54,8 @@ public class ChessTurnDurationCalculatorTest {
         increments.setTurnIncrement(1, t1Increment);
         increments.setPhaseIncrement(1, ph1Increment);
 
-        assertEquals(remainingBeforeStart.plus(t1Increment), flow.remainingAfterTurnStart(t1ph1, remainingBeforeStart));
-        assertEquals(remainingBeforeStart.plus(ph1Increment), flow.remainingAfterTurnStart(t2ph1, remainingBeforeStart));
+        assertEquals(remainingBeforeStart.plus(t1Increment), flow.totalTurnDuration(t1ph1, remainingBeforeStart));
+        assertEquals(remainingBeforeStart.plus(ph1Increment), flow.totalTurnDuration(t2ph1, remainingBeforeStart));
     }
 
     @Test

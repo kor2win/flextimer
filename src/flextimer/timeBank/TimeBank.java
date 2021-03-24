@@ -1,18 +1,12 @@
 package flextimer.timeBank;
 
-import flextimer.player.Player;
 
-import java.time.Duration;
-import java.util.Hashtable;
+import flextimer.turnFlow.util.*;
 
-public class TimeBank {
-    private final Hashtable<Player, Duration> playerDuration = new Hashtable<>();
+import java.time.*;
 
-    public void playerTime(Player player, Duration duration) {
-        playerDuration.put(player, duration);
-    }
+public interface TimeBank {
+    Duration getAccumulated(TimerTurn timerTurn);
 
-    public Duration remainingTime(Player player) {
-        return playerDuration.getOrDefault(player, Duration.ZERO);
-    }
+    void saveRemainingDuration(TimerTurn timerTurn, Duration remaining);
 }

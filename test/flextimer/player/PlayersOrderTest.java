@@ -1,5 +1,6 @@
 package flextimer.player;
 
+import flextimer.player.exception.IndexOutOfBounds;
 import flextimer.player.exception.UnknownPlayer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,18 @@ public class PlayersOrderTest {
     }
 
     @Test
+    public void getByIndex() throws Exception {
+        assertEquals(p1, playersOrder.get(0));
+        assertEquals(p3, playersOrder.get(2));
+    }
+
+    @Test
+    public void indexOutOfRange() {
+        assertThrows(IndexOutOfBounds.class, () -> playersOrder.get(5));
+        assertThrows(IndexOutOfBounds.class, () -> playersOrder.get(-1));
+    }
+
+    @Test
     public void before() throws Exception {
         assertEquals(p1, playersOrder.before(p2));
         assertEquals(p4, playersOrder.before(p1));
@@ -39,7 +52,7 @@ public class PlayersOrderTest {
     }
 
     @Test
-    public void qwe() {
+    public void whenUnknownPlayerSearched_thenThrow() {
         Player unknownPlayer = new Player("some player", 0xffffff);
         assertThrows(UnknownPlayer.class, () -> playersOrder.before(unknownPlayer));
         assertThrows(UnknownPlayer.class, () -> playersOrder.after(unknownPlayer));

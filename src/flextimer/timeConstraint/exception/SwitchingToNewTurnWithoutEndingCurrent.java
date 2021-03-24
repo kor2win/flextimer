@@ -1,4 +1,4 @@
-package flextimer.turnDurationFlow.exception;
+package flextimer.timeConstraint.exception;
 
 public class SwitchingToNewTurnWithoutEndingCurrent extends Exception {
 }

@@ -1,9 +1,9 @@
 package flextimer.turnDurationCalculator;
 
-import flextimer.timerTurnFlow.util.GameTurn;
+import flextimer.turnFlow.util.GameTurn;
 
 import java.time.Duration;
 
 public interface TurnDurationCalculator {
-    Duration remainingAfterTurnStart(GameTurn gameTurn, Duration remainingBeforeStart);
+    Duration totalTurnDuration(GameTurn gameTurn, Duration accumulated);
 }

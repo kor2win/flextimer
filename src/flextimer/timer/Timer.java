@@ -1,32 +1,30 @@
 package flextimer.timer;
 
-import flextimer.exception.PauseWhenPaused;
+import flextimer.exception.*;
 import flextimer.exception.StartWhenStarted;
 import flextimer.player.Player;
-import flextimer.timeBank.TimeBank;
-import flextimer.timerTurnFlow.util.TimerTurn;
-import flextimer.timerTurnFlow.TimerTurnFlow;
-import flextimer.turnDurationCalculator.TurnDurationCalculator;
-import flextimer.turnDurationFlow.exception.TimerDepleted;
-import flextimer.turnDurationFlow.util.ContinuousTurn;
-import flextimer.turnDurationFlow.exception.SwitchingToNewTurnWithoutEndingCurrent;
-import flextimer.turnDurationFlow.TurnDurationFlow;
+import flextimer.turnFlow.*;
+import flextimer.turnFlow.util.*;
+import flextimer.timeConstraint.*;
+import flextimer.timeConstraint.util.*;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.*;
 
 public class Timer {
     protected Clock clock = Clock.system(ZoneId.systemDefault());
 
     private final PassTimeScheduler passTimeScheduler = new PassTimeScheduler();
-    private final TimerTurnFlow timerTurnFlow;
-    private final TurnDurationFlow turnDurationFlow;
+    private final TurnFlow turnFlow;
+    private final TimeConstraint timeConstraint;
 
-    public Timer(TimerTurnFlow timerTurnFlow, TurnDurationCalculator turnDurationCalculator, TimeBank timeBank) {
-        this.timerTurnFlow = timerTurnFlow;
-        this.turnDurationFlow = new TurnDurationFlow(turnDurationCalculator, timeBank, currentTurn(), timerTurnFlow);
+    private ConstrainedTimerTurn constrainedTurn;
+    private boolean pauseOnTurnPass = false;
+
+    public Timer(TurnFlow turnFlow, TimeConstraint timeConstraint) {
+        this.turnFlow = turnFlow;
+        this.timeConstraint = timeConstraint;
+
+        this.constrainedTurn = timeConstraint.applyTo(turnFlow.firstTurn());
     }
 
     public void start() throws StartWhenStarted {
@@ -34,27 +32,27 @@ public class Timer {
             throw new StartWhenStarted();
         }
 
-        if (turnDurationFlow.isDepleted()) {
+        if (timeConstraint.isDepleted()) {
             return;
         }
 
-        continuousTurn().startTime(clock.instant());
-        passTimeScheduler.schedule(continuousTurn().depletedAt());
+        constrainedTurn.start(clock.instant());
+        passTimeScheduler.schedule(constrainedTurn.depletedAt());
     }
 
-    public void passTurn() throws TimerDepleted, SwitchingToNewTurnWithoutEndingCurrent {
+    public void passTurn() {
+        boolean isGoing = constrainedTurn.isGoing();
+
         passTimeScheduler.cancel();
-        continuousTurn().end(clock.instant());
+        constrainedTurn.end(clock.instant());
 
-        if (turnDurationFlow.isDepleted()) {
-            return;
-        }
+        TimerTurn current = constrainedTurn.timerTurn();
+        TimerTurn nextTurn = turnFlow.nextTurn(current);
+        constrainedTurn = timeConstraint.applyTo(nextTurn);
 
-        timerTurnFlow.switchToNextTurn();
-        turnDurationFlow.switchToNewTurn(currentTurn(), clock.instant());
-
-        if (continuousTurn().isTimerGoing()) {
-            passTimeScheduler.schedule(continuousTurn().depletedAt());
+        if (isGoing && !pauseOnTurnPass) {
+            constrainedTurn.start(clock.instant());
+            passTimeScheduler.schedule(constrainedTurn.depletedAt());
         }
     }
 
@@ -63,44 +61,40 @@ public class Timer {
             throw new PauseWhenPaused();
         }
 
-        if (turnDurationFlow.isDepleted()) {
+        if (timeConstraint.isDepleted()) {
             return;
         }
 
         passTimeScheduler.cancel();
-        continuousTurn().pauseTime(clock.instant());
+        constrainedTurn.pause(clock.instant());
     }
 
     public boolean isStarted() {
-        return continuousTurn().isTimerGoing();
+        return constrainedTurn.isGoing();
     }
 
     public TimerTurn currentTurn() {
-        return timerTurnFlow.timerTurn();
+        return constrainedTurn.timerTurn();
     }
 
-    public Duration remainingDuration() {
-        return continuousTurn().remaining(clock.instant());
+    public Duration currentRemainingDuration() {
+        return constrainedTurn.remaining(clock.instant());
     }
 
-    private ContinuousTurn continuousTurn() {
-        return turnDurationFlow.continuousTurn();
-    }
-
-    public Duration playerRemainingDuration(Player player) {
-        return turnDurationFlow.playerRemainingDuration(player, clock.instant());
+    public Duration remainingDuration(TimerTurn timerTurn) {
+        return timeConstraint.bankedRemaining(timerTurn);
     }
 
     public boolean isDepleted() {
-        return turnDurationFlow.isDepleted();
+        return timeConstraint.isDepleted();
     }
 
-    protected void setPauseOnTurnPass(boolean pauseOnTurnPass) {
-        turnDurationFlow.setPauseOnTurnPass(pauseOnTurnPass);
+    public void setPauseOnTurnPass(boolean pauseOnTurnPass) {
+        this.pauseOnTurnPass = pauseOnTurnPass;
     }
 
-    protected void setDepleteOnZeroRemaining(boolean depleteOnZeroRemaining) {
-        turnDurationFlow.setDepleteOnZeroRemaining(depleteOnZeroRemaining);
+    public void setDepleteOnZeroRemaining(boolean depleteOnZeroRemaining) {
+        timeConstraint.setDepleteOnZeroRemaining(depleteOnZeroRemaining);
     }
 
     protected void cancelScheduledTurnPass() {
@@ -109,6 +103,10 @@ public class Timer {
 
     protected void waitUntilScheduledTurnPass() {
         passTimeScheduler.waitUntilScheduledTurnPass();
+    }
+
+    public Player currentPlayer() {
+        return constrainedTurn.player();
     }
 
     protected class PassTimeScheduler {

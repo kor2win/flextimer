@@ -1,5 +1,6 @@
 package flextimer.player;
 
+import flextimer.player.exception.IndexOutOfBounds;
 import flextimer.player.exception.UnknownPlayer;
 
 import java.util.Arrays;
@@ -56,5 +57,13 @@ public class PlayersOrder {
 
     public int size() {
         return players.size();
+    }
+
+    public Player get(int index) throws IndexOutOfBounds {
+        if (index < 0 || index >= size()) {
+            throw new IndexOutOfBounds();
+        }
+
+        return players.get(index);
     }
 }

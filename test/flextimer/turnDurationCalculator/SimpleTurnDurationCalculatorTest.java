@@ -1,6 +1,6 @@
 package flextimer.turnDurationCalculator;
 
-import flextimer.timerTurnFlow.util.GameTurn;
+import flextimer.turnFlow.util.GameTurn;
 import flextimer.turnDurationCalculator.strategy.SimpleTurnDurationCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ public class SimpleTurnDurationCalculatorTest {
     public void startedTurnDurations() {
         GameTurn turn = new GameTurn(1, 1);
         Duration remainingBeforeStart = Duration.ofSeconds(5);
-        Duration remainingAfterStart = flow.remainingAfterTurnStart(turn, remainingBeforeStart);
+        Duration remainingAfterStart = flow.totalTurnDuration(turn, remainingBeforeStart);
 
         assertEquals(remainingBeforeStart, remainingAfterStart);
     }

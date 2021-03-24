@@ -1,6 +1,6 @@
 package flextimer.turnDurationCalculator.strategy;
 
-import flextimer.timerTurnFlow.util.GameTurn;
+import flextimer.turnFlow.util.GameTurn;
 import flextimer.turnDurationCalculator.TurnDurationCalculator;
 import flextimer.turnDurationCalculator.util.ChessTurnDurationIncrementsReader;
 
@@ -13,8 +13,8 @@ public class ChessTurnDurationCalculator implements TurnDurationCalculator {
         this.increments = increments;
     }
 
-    public Duration remainingAfterTurnStart(GameTurn gameTurn, Duration remainingBeforeStart) {
-        return remainingBeforeStart.plus(increments.increment(gameTurn));
+    public Duration totalTurnDuration(GameTurn gameTurn, Duration accumulated) {
+        return accumulated.plus(increments.increment(gameTurn));
     }
 }
 

@@ -1,20 +1,16 @@
 package flextimer.timer;
 
 import flextimer.exception.*;
-import flextimer.player.Player;
-import flextimer.player.PlayersOrder;
-import flextimer.player.exception.UnknownPlayer;
-import flextimer.timeBank.TimeBank;
-import flextimer.timerTurnFlow.TimerTurnFlow;
-import flextimer.turnDurationCalculator.TurnDurationCalculator;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import flextimer.player.*;
+import flextimer.timeBank.*;
+import flextimer.timeConstraint.*;
+import flextimer.turnDurationCalculator.*;
+import flextimer.turnFlow.*;
+import flextimer.turnFlow.strategy.*;
+import flextimer.turnFlow.util.*;
+import org.junit.jupiter.api.*;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,22 +39,18 @@ public class TimerTest {
 
     @BeforeEach
     public void setUpTimer() {
-        t = new Timer(
-                buildMockTimerTurnFlow(),
-                buildMockTurnDurationCalculator(),
-                buildTimeBank()
-        );
+        t = buildTimer(new StraightTurnPassingStrategy(), buildTurnDurationCalculator());
+        tIncremented = buildTimer(new StraightTurnPassingStrategy(), buildTurnDurationCalculatorWithIncrement());
+    }
 
+    private Timer buildTimer(TurnPassingStrategy turnPassingStrategy, TurnDurationCalculator turnDurationCalculator) {
+        TurnFlow turnFlow = new TurnFlow(playersOrder, turnPassingStrategy, 1);
+        TimeConstraint timeConstraint = new TimeConstraint(turnDurationCalculator, buildTimeBank(), turnFlow);
+
+        Timer t = new Timer(turnFlow, timeConstraint);
         t.clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
-
-
-        tIncremented = new Timer(
-                buildMockTimerTurnFlow(),
-                buildMockTurnDurationCalculatorWithIncrement(),
-                buildTimeBank()
-        );
-        tIncremented.clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
+        return t;
     }
 
     private static PlayersOrder buildPlayers() {
@@ -70,24 +62,20 @@ public class TimerTest {
         return new PlayersOrder(arr);
     }
 
-    private TimerTurnFlow buildMockTimerTurnFlow() {
-        return new MockTimerTurnFlow(playersOrder, 1);
-    }
-
-    private TurnDurationCalculator buildMockTurnDurationCalculator() {
+    private TurnDurationCalculator buildTurnDurationCalculator() {
         return (gameTurn, remainingBeforeStart) -> remainingBeforeStart;
     }
 
-    private TurnDurationCalculator buildMockTurnDurationCalculatorWithIncrement() {
+    private TurnDurationCalculator buildTurnDurationCalculatorWithIncrement() {
         return (gameTurn, remainingBeforeStart) -> remainingBeforeStart.plus(increment);
     }
 
     private TimeBank buildTimeBank() {
-        TimeBank timeBank = new TimeBank();
-
-        timeBank.playerTime(p1, p1_initDuration);
-        timeBank.playerTime(p2, p2_initDuration);
-
+        PlayersTimeBank timeBank = new PlayersTimeBank();
+        TimerTurn t1p1 = new TimerTurn(new GameTurn(1, 1), p1);
+        TimerTurn t1p2 = new TimerTurn(new GameTurn(1, 1), p2);
+        timeBank.saveRemainingDuration(t1p1, p1_initDuration);
+        timeBank.saveRemainingDuration(t1p2, p2_initDuration);
         return timeBank;
     }
 
@@ -102,6 +90,11 @@ public class TimerTest {
         timer.clock = Clock.offset(timer.clock, shift);
     }
 
+    private void passBackToCurrentPlayer(Timer t) {
+        t.passTurn();
+        t.passTurn();
+    }
+
     @Test
     public void canStartThenPauseThenResume() throws Exception {
         t.start();
@@ -110,7 +103,7 @@ public class TimerTest {
     }
 
     @Test
-    public void canPassTurn() throws Exception {
+    public void canPassTurn() {
         assertEquals(p1, t.currentTurn().player);
         t.passTurn();
         assertEquals(p2, t.currentTurn().player);
@@ -129,52 +122,45 @@ public class TimerTest {
 
     @Test
     public void remainingDurationDecreasesOverTimeOnStartedTimer() throws Exception {
-        Duration total = t.remainingDuration();
+        Duration total = t.currentRemainingDuration();
         Duration elapsed = Duration.ofSeconds(3);
 
         t.start();
         shiftTimerClock(t, elapsed);
 
-        assertEquals(total.minus(elapsed), t.remainingDuration());
+        assertEquals(total.minus(elapsed), t.currentRemainingDuration());
     }
 
     @Test
     public void remainingDurationUnaffectedOverTimeOnPausedTimer() throws Exception {
-        Duration total = t.remainingDuration();
+        Duration total = t.currentRemainingDuration();
         Duration elapsedOnPause_1 = Duration.ofSeconds(3);
         Duration elapsedOnPause_2 = Duration.ofSeconds(4);
         Duration active = Duration.ofSeconds(5);
 
         shiftTimerClock(t, elapsedOnPause_1);
-        assertEquals(total, t.remainingDuration());
+        assertEquals(total, t.currentRemainingDuration());
 
         t.start();
         shiftTimerClock(t, active);
 
         t.pause();
         shiftTimerClock(t, elapsedOnPause_2);
-        assertEquals(total.minus(active), t.remainingDuration());
-    }
-
-    @Test
-    public void canGetPlayersRemaining() {
-        assertEquals(p2_initDuration, t.playerRemainingDuration(p2));
+        assertEquals(total.minus(active), t.currentRemainingDuration());
     }
 
     @Test
     public void remainingDurationStoredOnTurnPass() throws Exception {
         Duration p1active = Duration.ofSeconds(5);
         Duration p2active = Duration.ofSeconds(4);
-        Duration p1beforeStart = t.playerRemainingDuration(p1);
-        Duration p2beforeStart = t.playerRemainingDuration(p2);
 
         t.start();
         shiftTimerClock(t, p1active);
+        assertEquals(p1_initDuration.minus(p1active), t.currentRemainingDuration());
+
         t.passTurn();
         shiftTimerClock(t, p2active);
-
-        assertEquals(p1beforeStart.minus(p1active), t.playerRemainingDuration(p1));
-        assertEquals(p2beforeStart.minus(p2active), t.playerRemainingDuration(p2));
+        assertEquals(p2_initDuration.minus(p2active), t.currentRemainingDuration());
     }
 
     @Test
@@ -189,20 +175,20 @@ public class TimerTest {
     public void whenDepleteOnZeroRemainingEnabled_thenDepleted() throws Exception {
         tIncremented.setDepleteOnZeroRemaining(true);
         tIncremented.start();
-        shiftTimerClock(tIncremented, tIncremented.remainingDuration());
+        shiftTimerClock(tIncremented, tIncremented.currentRemainingDuration());
         tIncremented.waitUntilScheduledTurnPass();
 
         assertTrue(tIncremented.isDepleted());
     }
 
     @Test
-    public void whenTurnPassOnStoppedTimer_thenTimerIsStopped() throws Exception {
+    public void whenTurnPassOnStoppedTimer_thenTimerIsStopped() {
         t.passTurn();
         assertFalse(t.isStarted());
 
-        Duration remainingBeforeTimeSkip = t.remainingDuration();
+        Duration remainingBeforeTimeSkip = t.currentRemainingDuration();
         shiftTimerClock(t, Duration.ofSeconds(2));
-        assertEquals(remainingBeforeTimeSkip, t.remainingDuration());
+        assertEquals(remainingBeforeTimeSkip, t.currentRemainingDuration());
     }
 
     @Test
@@ -219,15 +205,17 @@ public class TimerTest {
 
     @Test
     public void passTurnOnPausedTimer() throws Exception {
-        Duration p1beforeStart = t.playerRemainingDuration(p1);
+        Duration p1beforeStart = t.currentRemainingDuration();
         Duration p1active = Duration.ofSeconds(5);
 
         t.start();
         shiftTimerClock(t, p1active);
         t.pause();
-        t.passTurn();
 
-        assertEquals(p1beforeStart.minus(p1active), t.playerRemainingDuration(p1));
+        passBackToCurrentPlayer(t);
+
+        assertEquals(p1, t.currentPlayer());
+        assertEquals(p1beforeStart.minus(p1active), t.currentRemainingDuration());
     }
 
     @Test
@@ -241,9 +229,9 @@ public class TimerTest {
         Duration p2_expectedRemaining = p2_initDuration.plus(increment).minus(extra);
 
         tIncremented.passTurn();
-
-        assertEquals(Duration.ZERO, tIncremented.playerRemainingDuration(p1));
-        assertEquals(p2_expectedRemaining, tIncremented.playerRemainingDuration(p2));
+        assertEquals(p2_expectedRemaining, tIncremented.currentRemainingDuration());
+        tIncremented.passTurn();
+        assertEquals(increment, tIncremented.currentRemainingDuration());
     }
 
     @Test
@@ -254,57 +242,22 @@ public class TimerTest {
         shiftTimerClock(tIncremented, p1_initDuration.plus(increment).plus(extra));
 
         tIncremented.waitUntilScheduledTurnPass();
+        tIncremented.pause();
 
-        Duration p1_actualRemaining = tIncremented.playerRemainingDuration(p1);
-        Duration p2_actualRemaining = tIncremented.playerRemainingDuration(p2);
-
-        assertEquals(Duration.ZERO, p1_actualRemaining);
-        assertDurationEquals(p2_initDuration.plus(increment).minus(extra), p2_actualRemaining);
+        assertEquals(p2, tIncremented.currentPlayer());
+        assertDurationEquals(p2_initDuration.plus(increment).minus(extra), tIncremented.currentRemainingDuration());
+        tIncremented.passTurn();
+        assertEquals(p1, tIncremented.currentPlayer());
+        assertEquals(increment, tIncremented.currentRemainingDuration());
     }
 
     @Test
     public void depleteTimer() throws Exception {
         t.start();
         t.cancelScheduledTurnPass();
-        shiftTimerClock(t, t.remainingDuration());
+        shiftTimerClock(t, t.currentRemainingDuration());
         t.passTurn();
 
         assertTrue(t.isDepleted());
-    }
-}
-
-class MockTimerTurnFlow extends TimerTurnFlow {
-    public MockTimerTurnFlow(PlayersOrder playersOrder, int maxPhases) {
-        super(playersOrder, maxPhases);
-    }
-
-    protected boolean isLastPhase() {
-        return true;
-    }
-
-    protected boolean isLastPlayer() {
-        return playersOrder.last().equals(player);
-    }
-
-    protected void nextTurn() {
-        turnNumber++;
-        phase = 1;
-        player = playersOrder.first();
-    }
-
-    protected void nextPhase() {
-        phase = 1;
-        player = playersOrder.first();
-    }
-
-    protected void nextPlayer() {
-        try {
-            player = playersOrder.after(player);
-        } catch (UnknownPlayer ignored) {
-        }
-    }
-
-    protected TimerTurnFlow newInstance() {
-        return new MockTimerTurnFlow(playersOrder, maxPhases);
     }
 }
