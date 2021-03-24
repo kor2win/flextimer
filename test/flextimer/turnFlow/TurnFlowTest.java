@@ -1,10 +1,7 @@
 package flextimer.turnFlow;
 
-import flextimer.player.*;
-import flextimer.player.exception.UnknownPlayer;
-import flextimer.turnFlow.strategy.*;
-import flextimer.turnFlow.util.*;
 import org.junit.jupiter.api.*;
+import turnPassingStrategies.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,10 +1,6 @@
 package flextimer.timeConstraint;
 
-import flextimer.player.Player;
-import flextimer.timeBank.*;
-import flextimer.turnFlow.util.*;
-import flextimer.turnDurationCalculator.*;
-import flextimer.timeConstraint.util.ConstrainedTimerTurn;
+import flextimer.turnFlow.*;
 
 import java.time.*;
 
@@ -56,8 +52,7 @@ public class TimeConstraint {
             if (remaining.isZero()) {
                 depleteBank();
             } else {
-                Duration adjustedRemaining = remaining.minus(debt);
-                saveNewRemaining(adjustedRemaining);
+                saveNewRemaining(remaining.minus(debt));
 
                 if (remaining.isZero()) {
                     isEnded = true;
