@@ -6,13 +6,13 @@ import java.time.*;
 import java.util.*;
 
 public class ChessTurnDurationIncrements implements ChessTurnDurationIncrementsReader {
-    private final Hashtable<Integer, Duration> turnIncrement = new Hashtable<>();
+    private final Hashtable<Integer, Duration> roundIncrement = new Hashtable<>();
     private final Hashtable<Integer, Duration> phaseIncrement = new Hashtable<>();
 
-    public void setTurnIncrement(int turnNumber, Duration increment) throws NegativeIncrement {
+    public void setRoundIncrement(int roundNumber, Duration increment) throws NegativeIncrement {
         throwIfNegative(increment);
 
-        turnIncrement.put(turnNumber, increment);
+        roundIncrement.put(roundNumber, increment);
     }
 
     public void setPhaseIncrement(int phase, Duration increment) throws NegativeIncrement {
@@ -27,9 +27,9 @@ public class ChessTurnDurationIncrements implements ChessTurnDurationIncrementsR
         }
     }
 
-    public Duration increment(GameTurn turn) {
-        if (turn.phase == 1 && turnIncrement.containsKey(turn.turnNumber)) {
-            return turnIncrement.get(turn.turnNumber);
+    public Duration increment(GameRound turn) {
+        if (turn.phase == 1 && roundIncrement.containsKey(turn.roundNumber)) {
+            return roundIncrement.get(turn.roundNumber);
         } else {
             return phaseIncrement.getOrDefault(turn.phase, Duration.ZERO);
         }

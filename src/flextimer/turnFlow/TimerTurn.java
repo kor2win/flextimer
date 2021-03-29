@@ -1,18 +1,18 @@
 package flextimer.turnFlow;
 
 public class TimerTurn {
-    public final GameTurn gameTurn;
+    public final GameRound gameRound;
     public final Player player;
     private final int hashCode;
 
-    public TimerTurn(GameTurn gameTurn, Player player) {
-        this.gameTurn = gameTurn;
+    public TimerTurn(GameRound gameRound, Player player) {
+        this.gameRound = gameRound;
         this.player = player;
         hashCode = calculateHashCode();
     }
 
     public boolean equals(TimerTurn t) {
-        return gameTurn.equals(t.gameTurn) && player.equals(t.player);
+        return gameRound.equals(t.gameRound) && player.equals(t.player);
     }
 
     @Override
@@ -28,14 +28,14 @@ public class TimerTurn {
     }
 
     private int calculateHashCode() {
-        return (gameTurn.hashCode() ^ 0xf0f0f0f0) | (player.hashCode() ^ 0x0f0f0f0f);
+        return (gameRound.hashCode() ^ 0xf0f0f0f0) | (player.hashCode() ^ 0x0f0f0f0f);
     }
 
-    public int turnNumber() {
-        return gameTurn.turnNumber;
+    public int roundNumber() {
+        return gameRound.roundNumber;
     }
 
     public int phase() {
-        return gameTurn.phase;
+        return gameRound.phase;
     }
 }

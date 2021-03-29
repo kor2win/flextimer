@@ -6,7 +6,7 @@ import flextimer.turnFlow.*;
 import java.time.*;
 
 public class SimpleTurnDurationCalculator implements TurnDurationCalculator {
-    public Duration totalTurnDuration(GameTurn gameTurn, Duration accumulated) {
+    public Duration totalTurnDuration(GameRound gameRound, Duration accumulated) {
         return accumulated;
     }
 }

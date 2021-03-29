@@ -19,7 +19,7 @@ public class SimpleTurnDurationCalculatorTest {
 
     @Test
     public void startedTurnDurations() {
-        GameTurn turn = new GameTurn(1, 1);
+        GameRound turn = new GameRound(1, 1);
         Duration remainingBeforeStart = Duration.ofSeconds(5);
         Duration remainingAfterStart = flow.totalTurnDuration(turn, remainingBeforeStart);
 

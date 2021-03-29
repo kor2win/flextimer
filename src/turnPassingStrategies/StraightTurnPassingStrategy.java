@@ -2,11 +2,19 @@ package turnPassingStrategies;
 
 import flextimer.turnFlow.*;
 
-public class StraightTurnPassingStrategy extends TurnPassingStrategy {
+public class StraightTurnPassingStrategy extends RoundCanPlayedSimultaneously {
+    public StraightTurnPassingStrategy() {
+        super();
+    }
+
+    public StraightTurnPassingStrategy(GameRound simultaneousUntil) {
+        super(simultaneousUntil);
+    }
+
     @Override
-    public TimerTurn turnAfter(PlayersOrder playersOrder, TimerTurn current, int phasesCount) throws UnknownPlayer {
-        int turnNumber = current.gameTurn.turnNumber;
-        int phase = current.gameTurn.phase;
+    public TimerTurn nextTurn(PlayersOrder playersOrder, TimerTurn current, int phasesCount) throws UnknownPlayer {
+        int roundNumber = current.gameRound.roundNumber;
+        int phase = current.gameRound.phase;
         Player player = current.player;
 
         if (!player.equals(playersOrder.last())) {
@@ -15,17 +23,17 @@ public class StraightTurnPassingStrategy extends TurnPassingStrategy {
             phase++;
             player = playersOrder.first();
         } else {
-            turnNumber++;
+            roundNumber++;
             phase = 1;
             player = playersOrder.first();
         }
 
-        return buildTimerTurn(turnNumber, phase, player);
+        return buildTimerTurn(roundNumber, phase, player);
     }
 
-    private TimerTurn buildTimerTurn(int turnNumber, int phase, Player player) {
+    private TimerTurn buildTimerTurn(int roundNumber, int phase, Player player) {
         return new TimerTurn(
-                new GameTurn(turnNumber, phase),
+                new GameRound(roundNumber, phase),
                 player
         );
     }

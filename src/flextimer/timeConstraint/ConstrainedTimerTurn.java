@@ -1,39 +1,34 @@
 package flextimer.timeConstraint;
 
 import flextimer.turnFlow.*;
+import flextimer.ui.*;
+import org.jetbrains.annotations.*;
 
 import java.time.*;
 
-public class ConstrainedTimerTurn {
+public class ConstrainedTimerTurn implements TurnInfo {
     private final TimerTurn timerTurn;
+    private final TimerClock timerClock;
     private final TimeConstraint timeConstraint;
+
     private Duration remaining;
-    private boolean isTimerGoing = false;
     private Instant startTime;
+    private boolean isPaused = true;
+    private boolean isSuppressed = false;
     private boolean isEnded = false;
 
-    public ConstrainedTimerTurn(TimerTurn timerTurn, TimeConstraint timeConstraint) {
+    public ConstrainedTimerTurn(TimerTurn timerTurn, TimerClock timerClock, TimeConstraint timeConstraint) {
         this.timerTurn = timerTurn;
+        this.timerClock = timerClock;
         this.timeConstraint = timeConstraint;
 
         remaining = timeConstraint.turnDurationCalculator.totalTurnDuration(
-                timerTurn.gameTurn,
+                timerTurn.gameRound,
                 timeConstraint.bankedRemaining(timerTurn)
         );
 
         if (remaining.isZero()) {
             depleteBank();
-        } else if (timeConstraint.isDebtsApplyingEnabled()) {
-            Duration debt = timeConstraint.popDebt(timerTurn);
-            saveNewRemaining(remaining.minus(debt));
-
-            if (remaining.isZero()) {
-                isEnded = true;
-            }
-
-            if (isEnoughToDepleteTimer()) {
-                timeConstraint.deplete();
-            }
         }
     }
 
@@ -44,39 +39,66 @@ public class ConstrainedTimerTurn {
         timeConstraint.timeBank.saveRemainingDuration(timerTurn, Duration.ZERO);
     }
 
-    public void start(Instant instant) {
-        if (isEnded()) {
+    public void start() {
+        if (isGoing() || isEnded()) {
             return;
         }
 
-        isTimerGoing = true;
-        startTime = instant;
+        syncRemaining();
+        isPaused = false;
+
+        if (isGoing()) {
+            startTime = timerClock.instant();
+        }
     }
 
-    public void end(Instant instant) {
+    public void pause() {
         if (isEnded()) {
             return;
         }
 
-        isEnded = true;
+        syncRemaining();
+        isPaused = true;
+    }
 
-        saveNewRemaining(remaining(instant));
+    public void end() {
+        if (isEnded()) {
+            return;
+        }
+
+        syncRemaining();
+        isEnded = true;
+    }
+
+    protected void suppress() {
+        if (isEnded()) {
+            return;
+        }
+
+        syncRemaining();
+        isSuppressed = true;
+    }
+
+    protected void resume() {
+        if (isEnded()) {
+            return;
+        }
+
+        isSuppressed = false;
+
+        if (isGoing()) {
+            startTime = timerClock.instant();
+        }
+    }
+
+    private void syncRemaining() {
+        remaining = remaining();
+        timeConstraint.timeBank.saveRemainingDuration(timerTurn, remaining);
 
         if (isEnoughToDepleteTimer()) {
             timeConstraint.deplete();
+            isEnded = true;
         }
-    }
-
-    private void saveNewRemaining(Duration newRemaining) {
-        boolean remainingNotPositive = newRemaining.isNegative() || newRemaining.isZero();
-        if (timeConstraint.isDebtsApplyingEnabled() && remainingNotPositive) {
-            TimerTurn nextTurn = timeConstraint.turnFlow.nextTurn(timerTurn);
-            timeConstraint.rememberDebt(nextTurn, newRemaining.negated());
-            newRemaining = Duration.ZERO;
-        }
-
-        remaining = newRemaining;
-        timeConstraint.timeBank.saveRemainingDuration(timerTurn, remaining);
     }
 
     private boolean isEnoughToDepleteTimer() {
@@ -87,49 +109,59 @@ public class ConstrainedTimerTurn {
         if (timeConstraint.depleteOnZeroRemaining()) {
             return true;
         } else {
-            TimerTurn futureTurn = timeConstraint.turnFlow.nextTurnOfSamePlayer(timerTurn);
-            Duration futureDuration = timeConstraint.turnDurationCalculator.totalTurnDuration(futureTurn.gameTurn, Duration.ZERO);
+            TimerTurn futureTurn = nextTurnOfSamePlayer();
+            Duration futureDuration = timeConstraint.turnDurationCalculator.totalTurnDuration(futureTurn.gameRound, Duration.ZERO);
 
             return futureDuration.isZero();
         }
     }
 
-    public void pause(Instant instant) {
-        if (isEnded()) {
-            return;
+    @NotNull
+    private TimerTurn nextTurnOfSamePlayer() {
+        try {
+            return timeConstraint.turnFlow.nextTurnOfSamePlayer(timerTurn);
+        } catch (UnknownPlayer ignored) {
         }
 
-        remaining = remaining(instant);
-        isTimerGoing = false;
+        return null;
     }
 
-    public Duration remaining(Instant instant) {
+    public Duration remaining() {
         Duration elapsed = isGoing()
-                ? Duration.between(startTime, instant)
+                ? Duration.between(startTime, timerClock.instant())
                 : Duration.ZERO;
 
         return remaining.minus(elapsed);
     }
 
-    public boolean isDepletedAt(Instant instant) {
-        if (!isGoing()) {
-            return isEnded;
-        }
-
-        Duration r = remaining(instant);
-        return r.isNegative() || r.isZero();
-    }
-
+    @Override
     public boolean isGoing() {
-        return isTimerGoing;
+        return !isPaused && !isSuppressed && !isEnded;
     }
 
+    @Override
     public boolean isEnded() {
         return isEnded;
     }
 
+    @Override
     public TimerTurn timerTurn() {
         return timerTurn;
+    }
+
+    @Override
+    public GameRound gameTurn() {
+        return timerTurn.gameRound;
+    }
+
+    @Override
+    public int roundNumber() {
+        return timerTurn.gameRound.roundNumber;
+    }
+
+    @Override
+    public int phase() {
+        return timerTurn.gameRound.phase;
     }
 
     public Player player() {

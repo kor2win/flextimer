@@ -1,31 +1,38 @@
 package flextimer.timeConstraint;
 
 import flextimer.turnFlow.*;
+import flextimer.ui.*;
 
 import java.time.*;
-import java.util.concurrent.*;
+import java.util.*;
 
 public class TimeConstraint {
     protected final TurnDurationCalculator turnDurationCalculator;
     protected final TimeBank timeBank;
     protected final TurnFlow turnFlow;
+    protected final TimeConstraintConfig config;
 
-    private final ConcurrentHashMap<TimerTurn, Duration> debts = new ConcurrentHashMap<>();
     private boolean isDepleted = false;
-    private boolean depleteOnZeroRemaining = false;
 
-    public TimeConstraint(TurnDurationCalculator turnDurationCalculator, TimeBank timeBank, TurnFlow turnFlow) {
+    public TimeConstraint(TurnDurationCalculator turnDurationCalculator, TimeBank timeBank, TurnFlow turnFlow, TimeConstraintConfig config) {
         this.turnDurationCalculator = turnDurationCalculator;
         this.timeBank = timeBank;
         this.turnFlow = turnFlow;
+        this.config = config;
     }
 
-    public ConstrainedTimerTurn applyTo(TimerTurn timerTurn) {
-        return new ConstrainedTimerTurn(timerTurn, this);
+    public ConstrainedTimerTurn applyTo(TimerTurn timerTurn, TimerClock timerClock) {
+        return new ConstrainedTimerTurn(timerTurn, timerClock, this);
     }
 
-    public void setDepleteOnZeroRemaining(boolean depleteOnZeroRemaining) {
-        this.depleteOnZeroRemaining = depleteOnZeroRemaining;
+    public ConstrainedSimultaneousTurns applyTo(SimultaneousTurns simultaneousTurns, TimerClock timerClock) {
+        List<ConstrainedTimerTurn> constrainedTurns = new ArrayList<>(simultaneousTurns.size());
+
+        for (int i = 0; i < simultaneousTurns.size(); i++) {
+            constrainedTurns.add(applyTo(simultaneousTurns.get(i), timerClock));
+        }
+
+        return new ConstrainedSimultaneousTurns(constrainedTurns);
     }
 
     public Duration bankedRemaining(TimerTurn timerTurn) {
@@ -41,26 +48,6 @@ public class TimeConstraint {
     }
 
     protected boolean depleteOnZeroRemaining() {
-        return depleteOnZeroRemaining;
-    }
-
-    protected Duration popDebt(TimerTurn timerTurn) {
-        Duration r = debts.getOrDefault(timerTurn, Duration.ZERO);
-        debts.remove(timerTurn);
-
-        return r;
-    }
-
-    protected void rememberDebt(TimerTurn timerTurn, Duration debt) {
-        debts.put(timerTurn, debt);
-    }
-
-    /**
-     * Override to disable remaining recalculation by debt from previous turn.
-     * For instance, this could be useful for simultaneous turns.
-     * @return boolean
-     */
-    protected boolean isDebtsApplyingEnabled() {
-        return true;
+        return config.depleteOnZeroRemaining();
     }
 }

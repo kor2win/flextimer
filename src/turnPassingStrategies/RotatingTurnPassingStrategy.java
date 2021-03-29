@@ -2,7 +2,15 @@ package turnPassingStrategies;
 
 import flextimer.turnFlow.*;
 
-public class RotatingTurnPassingStrategy extends TurnPassingStrategy {
+public class RotatingTurnPassingStrategy extends RoundCanPlayedSimultaneously {
+    public RotatingTurnPassingStrategy() {
+        super();
+    }
+
+    public RotatingTurnPassingStrategy(GameRound simultaneousUntil) {
+        super(simultaneousUntil);
+    }
+
     @Override
     public TimerTurn firstTurn(PlayersOrder playersOrder) {
         Player first = playersOrder.first();
@@ -10,13 +18,13 @@ public class RotatingTurnPassingStrategy extends TurnPassingStrategy {
     }
 
     @Override
-    public TimerTurn turnAfter(PlayersOrder playersOrder, TimerTurn current, int phasesCount) throws UnknownPlayer {
+    public TimerTurn nextTurn(PlayersOrder playersOrder, TimerTurn current, int phasesCount) throws UnknownPlayer {
         RotatingTimerTurn c = (RotatingTimerTurn) current;
 
-        int turnNumber = c.gameTurn.turnNumber;
-        int phase = c.gameTurn.phase;
+        int roundNumber = c.gameRound.roundNumber;
+        int phase = c.gameRound.phase;
         Player player = c.player;
-        Player firstPlayer = c.firstPlayerOnTurn;
+        Player firstPlayer = c.firstPlayerForRound;
 
         Player possibleNext = playersOrder.after(player);
         if (!firstPlayer.equals(possibleNext)) {
@@ -25,29 +33,29 @@ public class RotatingTurnPassingStrategy extends TurnPassingStrategy {
             phase++;
             player = firstPlayer;
         } else {
-            turnNumber++;
+            roundNumber++;
             phase = 1;
             firstPlayer = playersOrder.after(firstPlayer);
             player = firstPlayer;
         }
 
-        return buildTimerTurn(turnNumber, phase, player, firstPlayer);
+        return buildTimerTurn(roundNumber, phase, player, firstPlayer);
     }
 
-    private TimerTurn buildTimerTurn(int turnNumber, int phase, Player player, Player firstPlayerOnTurn) {
+    private TimerTurn buildTimerTurn(int roundNumber, int phase, Player player, Player firstPlayerOnTurn) {
         return new RotatingTimerTurn(
-                new GameTurn(turnNumber, phase),
+                new GameRound(roundNumber, phase),
                 player,
                 firstPlayerOnTurn
         );
     }
 
     private static class RotatingTimerTurn extends TimerTurn {
-        public final Player firstPlayerOnTurn;
+        public final Player firstPlayerForRound;
 
-        public RotatingTimerTurn(GameTurn gameTurn, Player player, Player firstPlayerOnTurn) {
-            super(gameTurn, player);
-            this.firstPlayerOnTurn = firstPlayerOnTurn;
+        public RotatingTimerTurn(GameRound gameRound, Player player, Player firstPlayerForRound) {
+            super(gameRound, player);
+            this.firstPlayerForRound = firstPlayerForRound;
         }
     }
 }

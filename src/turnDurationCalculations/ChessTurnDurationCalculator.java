@@ -12,8 +12,8 @@ public class ChessTurnDurationCalculator implements TurnDurationCalculator {
         this.increments = increments;
     }
 
-    public Duration totalTurnDuration(GameTurn gameTurn, Duration accumulated) {
-        return accumulated.plus(increments.increment(gameTurn));
+    public Duration totalTurnDuration(GameRound gameRound, Duration accumulated) {
+        return accumulated.plus(increments.increment(gameRound));
     }
 }
 

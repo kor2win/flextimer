@@ -5,5 +5,5 @@ import flextimer.turnFlow.*;
 import java.time.*;
 
 public interface ChessTurnDurationIncrementsReader {
-    Duration increment(GameTurn turn);
+    Duration increment(GameRound turn);
 }

@@ -11,9 +11,9 @@ public class EntitiesTest {
         Player a2 = new Player("name", 0);
         Player aX = new Player("some", 0);
 
-        GameTurn b1 = new GameTurn(1, 1);
-        GameTurn b2 = new GameTurn(1, 1);
-        GameTurn bX = new GameTurn(1, 2);
+        GameRound b1 = GameRound.FIRST;
+        GameRound b2 = GameRound.FIRST;
+        GameRound bX = new GameRound(1, 2);
 
         TimerTurn c1 = new TimerTurn(b1, a1);
         TimerTurn c2 = new TimerTurn(b2, a2);
