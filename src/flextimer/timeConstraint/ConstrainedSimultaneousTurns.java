@@ -13,7 +13,7 @@ public class ConstrainedSimultaneousTurns {
         return constrainedTurns.size();
     }
 
-    public ConstrainedTimerTurn get(int index) {
+    public ConstrainedTimerTurn get(int index) throws IndexOutOfBoundsException {
         return constrainedTurns.get(index);
     }
 

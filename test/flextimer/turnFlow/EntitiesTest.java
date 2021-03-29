@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class EntitiesTest {
     @Test
     public void hashingProperties() {
-        Player a1 = new Player("name", 0);
-        Player a2 = new Player("name", 0);
-        Player aX = new Player("some", 0);
+        Player a1 = new Player("name");
+        Player a2 = new Player("name");
+        Player aX = new Player("some");
 
         GameRound b1 = GameRound.FIRST;
         GameRound b2 = GameRound.FIRST;

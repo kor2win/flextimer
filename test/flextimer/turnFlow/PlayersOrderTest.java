@@ -5,10 +5,10 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PlayersOrderTest {
-    private static final Player p1 = new Player("a", 1);
-    private static final Player p2 = new Player("b", 2);
-    private static final Player p3 = new Player("c", 3);
-    private static final Player p4 = new Player("d", 4);
+    private static final Player p1 = new Player("a");
+    private static final Player p2 = new Player("b");
+    private static final Player p3 = new Player("c");
+    private static final Player p4 = new Player("d");
     private static PlayersOrder playersOrder;
 
     @BeforeAll
@@ -49,7 +49,7 @@ public class PlayersOrderTest {
 
     @Test
     public void whenUnknownPlayerSearched_thenThrow() {
-        Player unknownPlayer = new Player("some player", 0xffffff);
+        Player unknownPlayer = new Player("some player");
         assertThrows(UnknownPlayer.class, () -> playersOrder.before(unknownPlayer));
         assertThrows(UnknownPlayer.class, () -> playersOrder.after(unknownPlayer));
     }

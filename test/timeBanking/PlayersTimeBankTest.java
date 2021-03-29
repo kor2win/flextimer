@@ -17,8 +17,8 @@ public class PlayersTimeBankTest {
 
     @BeforeAll
     public static void setUpTurns() {
-        Player p1 = new Player("Anton", 0x00FF00);
-        Player p2 = new Player("Max", 0xFF0000);
+        Player p1 = new Player("Anton");
+        Player p2 = new Player("Max");
         GameRound t1 = GameRound.FIRST;
         GameRound t2 = new GameRound(2, 1);
         t1p1 = new TimerTurn(t1, p1);
@@ -36,8 +36,8 @@ public class PlayersTimeBankTest {
         final int s1 = 5;
         final int s2 = 7;
 
-        bank.saveRemainingDuration(t1p1, Duration.ofSeconds(s1));
-        bank.saveRemainingDuration(t1p2, Duration.ofSeconds(s2));
+        bank.saveRemaining(t1p1, Duration.ofSeconds(s1));
+        bank.saveRemaining(t1p2, Duration.ofSeconds(s2));
 
         assertEquals(Duration.ofSeconds(s1), bank.getAccumulated(t1p1));
         assertEquals(Duration.ofSeconds(s2), bank.getAccumulated(t1p2));
@@ -52,7 +52,7 @@ public class PlayersTimeBankTest {
     public void durationNotDependsOnGameTurn() {
         final int s1 = 5;
 
-        bank.saveRemainingDuration(t1p1, Duration.ofSeconds(s1));
+        bank.saveRemaining(t1p1, Duration.ofSeconds(s1));
 
         assertEquals(Duration.ofSeconds(s1), bank.getAccumulated(t2p1));
     }

@@ -36,7 +36,7 @@ public class ConstrainedTimerTurn implements TurnInfo {
         isEnded = true;
         timeConstraint.deplete();
         remaining = Duration.ZERO;
-        timeConstraint.timeBank.saveRemainingDuration(timerTurn, Duration.ZERO);
+        timeConstraint.timeBank.saveRemaining(timerTurn, Duration.ZERO);
     }
 
     public void start() {
@@ -93,7 +93,7 @@ public class ConstrainedTimerTurn implements TurnInfo {
 
     private void syncRemaining() {
         remaining = remaining();
-        timeConstraint.timeBank.saveRemainingDuration(timerTurn, remaining);
+        timeConstraint.timeBank.saveRemaining(timerTurn, remaining);
 
         if (isEnoughToDepleteTimer()) {
             timeConstraint.deplete();

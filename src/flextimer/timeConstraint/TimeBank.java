@@ -7,5 +7,5 @@ import java.time.*;
 public interface TimeBank {
     Duration getAccumulated(TimerTurn timerTurn);
 
-    void saveRemainingDuration(TimerTurn timerTurn, Duration remaining);
+    void saveRemaining(TimerTurn timerTurn, Duration remaining);
 }

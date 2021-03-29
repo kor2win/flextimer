@@ -15,7 +15,11 @@ public class PlayersTimeBank implements TimeBank {
     }
 
     @Override
-    public void saveRemainingDuration(TimerTurn timerTurn, Duration remaining) {
-        bank.put(timerTurn.player, remaining);
+    public void saveRemaining(TimerTurn timerTurn, Duration remaining) {
+        savePlayerRemaining(timerTurn.player, remaining);
+    }
+
+    public void savePlayerRemaining(Player player, Duration remaining) {
+        bank.put(player, remaining);
     }
 }

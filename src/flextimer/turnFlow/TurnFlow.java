@@ -1,14 +1,12 @@
 package flextimer.turnFlow;
 
 public class TurnFlow {
-    private final PlayersOrder playersOrder;
     private final TurnPassingStrategy turnPassingStrategy;
-    private final int phasesCount;
+    private final TurnFlowConfig config;
 
-    public TurnFlow(PlayersOrder playersOrder, TurnPassingStrategy turnPassingStrategy, int phasesCount) {
-        this.playersOrder = playersOrder;
+    public TurnFlow(TurnPassingStrategy turnPassingStrategy, TurnFlowConfig config) {
         this.turnPassingStrategy = turnPassingStrategy;
-        this.phasesCount = phasesCount;
+        this.config = config;
     }
 
     public TimerTurn nextTurnOfSamePlayer(TimerTurn timerTurn) throws UnknownPlayer {
@@ -22,14 +20,14 @@ public class TurnFlow {
     }
 
     private TimerTurn nextTurn(TimerTurn current) throws UnknownPlayer {
-        return turnPassingStrategy.nextTurn(playersOrder, current, phasesCount);
+        return turnPassingStrategy.nextTurn(config.playersOrder(), current, config.phasesCount());
     }
 
     public SimultaneousTurns firstSimultaneousTurns() {
-        return turnPassingStrategy.firstSimultaneousTurns(playersOrder, phasesCount);
+        return turnPassingStrategy.firstSimultaneousTurns(config.playersOrder(), config.phasesCount());
     }
 
     public SimultaneousTurns nextRoundOfTurns(TimerTurn current) throws UnknownPlayer {
-        return turnPassingStrategy.simultaneousTurnsAfterTurn(playersOrder, current, phasesCount);
+        return turnPassingStrategy.simultaneousTurnsAfterTurn(config.playersOrder(), current, config.phasesCount());
     }
 }

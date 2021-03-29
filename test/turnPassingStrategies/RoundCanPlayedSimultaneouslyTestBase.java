@@ -32,9 +32,9 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
 
     protected static PlayersOrder buildPlayers() {
         Player[] arr = {
-                new Player("Anton", 0x00FF00),
-                new Player("Max", 0xFF0000),
-                new Player("Lisa", 0x94E2FF)
+                new Player("Anton"),
+                new Player("Max"),
+                new Player("Lisa")
         };
 
         return new PlayersOrder(arr);

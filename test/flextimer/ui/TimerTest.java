@@ -37,14 +37,14 @@ public class TimerTest {
 
     @BeforeEach
     public void setUpTimer() {
-        Config config = new Config();
+        Config config = buildConfig();
 
         t = buildTimer(buildTurnDurationCalculator(), buildTimeBank(), config);
         tIncremented = buildTimer(buildTurnDurationCalculatorWithIncrement(), buildTimeBank(), config);
     }
 
     private Timer buildTimer(TurnDurationCalculator turnDurationCalculator, TimeBank timeBank, Config config) {
-        TurnFlow turnFlow = new TurnFlow(playersOrder, turnPassingStrategy, PHASES_COUNT);
+        TurnFlow turnFlow = new TurnFlow(turnPassingStrategy, config);
         TimeConstraint timeConstraint = new TimeConstraint(turnDurationCalculator, timeBank, turnFlow, config);
 
         Timer t = new Timer(turnFlow, timeConstraint, config);
@@ -54,7 +54,7 @@ public class TimerTest {
     }
 
     private Timer buildTimerWithEmptyBank() {
-        return buildTimer(buildTurnDurationCalculator(), new PlayersTimeBank(), new Config());
+        return buildTimer(buildTurnDurationCalculator(), new PlayersTimeBank(), buildConfig());
     }
 
     private Timer buildTimerWithConfig(TurnDurationCalculator turnDurationCalculator, Config config) {
@@ -63,8 +63,8 @@ public class TimerTest {
 
     private static PlayersOrder buildPlayers() {
         var arr = new Player[] {
-                new Player("Anton", 0x00FF00),
-                new Player("Max", 0xFF0000)
+                new Player("Anton"),
+                new Player("Max")
         };
 
         return new PlayersOrder(arr);
@@ -82,8 +82,8 @@ public class TimerTest {
         PlayersTimeBank timeBank = new PlayersTimeBank();
         TimerTurn t1p1 = new TimerTurn(GameRound.FIRST, p1);
         TimerTurn t1p2 = new TimerTurn(GameRound.FIRST, p2);
-        timeBank.saveRemainingDuration(t1p1, p1_initDuration);
-        timeBank.saveRemainingDuration(t1p2, p2_initDuration);
+        timeBank.saveRemaining(t1p1, p1_initDuration);
+        timeBank.saveRemaining(t1p2, p2_initDuration);
         return timeBank;
     }
 
@@ -108,6 +108,14 @@ public class TimerTest {
 
     private ConstrainedTimerTurn getFirstTurn(Timer t) {
         return t.getConstrainedSimultaneousTurns().get(0);
+    }
+
+    private Config buildConfig() {
+        Config config = new Config();
+        config.setPlayersOrder(playersOrder);
+        config.setPhasesCount(PHASES_COUNT);
+
+        return config;
     }
 
     @Test
@@ -205,7 +213,7 @@ public class TimerTest {
 
     @Test
     public void whenEnabledStopOnTurnPass_thenTimerStoppedAfterTurnPass() throws Exception {
-        Config config = new Config();
+        Config config = buildConfig();
         config.setPauseOnTurnPass(true);
         Timer timer = buildTimerWithConfig(buildTurnDurationCalculator(), config);
 
@@ -217,7 +225,7 @@ public class TimerTest {
 
     @Test
     public void whenDepleteOnZeroRemainingEnabled_thenDepleted() {
-        Config config = new Config();
+        Config config = buildConfig();
         config.setDepleteOnZeroRemaining(true);
         Timer tIncremented = buildTimerWithConfig(buildTurnDurationCalculatorWithIncrement(), config);
 
@@ -326,8 +334,9 @@ public class TimerTest {
 
     @Test
     public void simultaneousRunOfTwoNotPassedTurns() {
-        TurnFlow turnFlow = new TurnFlow(playersOrder, new StraightTurnPassingStrategy(), PHASES_COUNT);
-        Config config = new Config();
+        Config config = buildConfig();
+
+        TurnFlow turnFlow = new TurnFlow(new StraightTurnPassingStrategy(), config);
         TimeConstraint timeConstraint = new TimeConstraint(buildTurnDurationCalculator(), buildTimeBank(), turnFlow, config);
         Timer timer = new Timer(turnFlow, timeConstraint, config);
 

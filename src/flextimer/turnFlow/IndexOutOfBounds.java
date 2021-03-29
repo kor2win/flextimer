@@ -1,4 +1,4 @@
 package flextimer.turnFlow;
 
-public class IndexOutOfBounds extends PlayerException {
+public class IndexOutOfBounds extends TurnFlowException {
 }
