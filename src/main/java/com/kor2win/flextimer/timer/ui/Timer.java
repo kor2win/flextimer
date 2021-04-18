@@ -12,8 +12,8 @@ public class Timer {
     private final TimeConstraint timeConstraint;
     private final TimerConfig config;
 
-    private SimultaneousTurns simultaneousTurns;
     private ConstrainedSimultaneousTurns constrainedSimultaneousTurns;
+    private boolean isStopped = true;
     private boolean isPaused = false;
 
     public Timer(
@@ -24,62 +24,83 @@ public class Timer {
         this.turnFlow = turnFlow;
         this.timeConstraint = timeConstraint;
         this.config = config;
-
-        simultaneousTurns = turnFlow.firstSimultaneousTurns();
-        constrainedSimultaneousTurns = timeConstraint.applyTo(simultaneousTurns, timerClock);
-        constrainedSimultaneousTurns.startAll();
     }
 
-    public void passSimultaneousTurns() throws Depleted, PassTurnOnPause {
+    public void passSimultaneousTurns() {
         if (isDepleted()) {
-            throw new Depleted();
+            throw new TimerDepleted();
         }
 
         if (isPaused()) {
             throw new PassTurnOnPause();
         }
 
-        constrainedSimultaneousTurns.endAll();
+        if (isStopped()) {
+            throw new TimerNotLaunched();
+        }
 
+        getCurrentSimultaneousTurns().endAll();
         switchToNextTurns();
 
         if (!config.pauseOnTurnPass()) {
-            constrainedSimultaneousTurns.startAll();
+            getCurrentSimultaneousTurns().launchAll();
         }
     }
 
     private void switchToNextTurns() {
-        try {
-            simultaneousTurns = turnFlow.nextRoundOfTurns(simultaneousTurns.lastTurn());
-        } catch (UnknownPlayer ignored) {
-        }
+        SimultaneousTurns simultaneousTurns = turnFlow.nextRoundOfTurns(getCurrentSimultaneousTurns().lastTurn().timerTurn());
         constrainedSimultaneousTurns = timeConstraint.applyTo(simultaneousTurns, timerClock);
     }
 
-    public void pause() throws Depleted {
-        if (isDepleted()) {
-            throw new Depleted();
+    public void launch() {
+        if (!isStopped()) {
+            throw new TimerAlreadyLaunched();
         }
 
-        if (!isPaused()) {
-            isPaused = true;
-            constrainedSimultaneousTurns.suppressAll();
-        }
+        isStopped = false;
+        getCurrentSimultaneousTurns().launchAll();
     }
 
-    public void resume() throws Depleted {
+    public void pause() {
         if (isDepleted()) {
-            throw new Depleted();
+            throw new TimerDepleted();
+        }
+
+        if (isStopped()) {
+            throw new TimerNotLaunched();
         }
 
         if (isPaused()) {
-            isPaused = false;
-            constrainedSimultaneousTurns.resumeAll();
+            throw new TimerPaused();
         }
+
+        isPaused = true;
+        getCurrentSimultaneousTurns().suppressAll();
+    }
+
+    public void resume() {
+        if (isDepleted()) {
+            throw new TimerDepleted();
+        }
+
+        if (isStopped()) {
+            throw new TimerNotLaunched();
+        }
+
+        if (!isPaused()) {
+            throw new TimerNotPaused();
+        }
+
+        isPaused = false;
+        getCurrentSimultaneousTurns().resumeAll();
     }
 
     public boolean isPaused() {
         return isPaused;
+    }
+
+    public boolean isStopped() {
+        return isStopped;
     }
 
     public boolean isDepleted() {
@@ -91,10 +112,19 @@ public class Timer {
             return;
         }
 
-        constrainedSimultaneousTurns.endAllDepleted();
+        if (isStopped()) {
+            throw new TimerNotLaunched();
+        }
+
+        getCurrentSimultaneousTurns().endAllDepleted();
     }
 
-    public ConstrainedSimultaneousTurns getConstrainedSimultaneousTurns() {
+    public ConstrainedSimultaneousTurns getCurrentSimultaneousTurns() {
+        if (constrainedSimultaneousTurns == null) {
+            SimultaneousTurns simultaneousTurns = turnFlow.firstSimultaneousTurns();
+            constrainedSimultaneousTurns = timeConstraint.applyTo(simultaneousTurns, timerClock);
+        }
+
         return constrainedSimultaneousTurns;
     }
 

@@ -24,7 +24,7 @@ public class PlayersOrderTest {
     }
 
     @Test
-    public void getByIndex() throws Exception {
+    public void getByIndex() {
         assertEquals(p1, playersOrder.get(0));
         assertEquals(p3, playersOrder.get(2));
     }
@@ -36,13 +36,13 @@ public class PlayersOrderTest {
     }
 
     @Test
-    public void before() throws Exception {
+    public void before() {
         assertEquals(p1, playersOrder.before(p2));
         assertEquals(p4, playersOrder.before(p1));
     }
 
     @Test
-    public void after() throws Exception {
+    public void after() {
         assertEquals(p3, playersOrder.after(p2));
         assertEquals(p1, playersOrder.after(p4));
     }

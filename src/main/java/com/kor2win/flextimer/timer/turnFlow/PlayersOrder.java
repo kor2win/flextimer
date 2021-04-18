@@ -17,7 +17,7 @@ public class PlayersOrder {
         return players.getLast();
     }
 
-    public Player after(Player player) throws UnknownPlayer {
+    public Player after(Player player) {
         if (player.equals(last())) {
             return first();
         }
@@ -34,7 +34,7 @@ public class PlayersOrder {
         throw new UnknownPlayer(player);
     }
 
-    public Player before(Player player) throws UnknownPlayer {
+    public Player before(Player player) {
         if (player.equals(first())) {
             return last();
         }
@@ -55,7 +55,7 @@ public class PlayersOrder {
         return players.size();
     }
 
-    public Player get(int index) throws IndexOutOfBounds {
+    public Player get(int index) {
         if (index < 0 || index >= size()) {
             throw new IndexOutOfBounds();
         }

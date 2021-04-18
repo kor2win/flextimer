@@ -28,7 +28,7 @@ public abstract class RoundCanPlayedSimultaneously extends TurnPassingStrategy {
     }
 
     @Override
-    public SimultaneousTurns simultaneousTurnsAfterTurn(PlayersOrder playersOrder, TimerTurn lastPlayed, int phasesCount) throws UnknownPlayer {
+    public SimultaneousTurns simultaneousTurnsAfterTurn(PlayersOrder playersOrder, TimerTurn lastPlayed, int phasesCount) {
         TimerTurn from = nextTurn(playersOrder, lastPlayed, phasesCount);
         if (isSimultaneousTurnsEnabled(from.gameRound)) {
             return buildRound(playersOrder, from, phasesCount);
@@ -58,24 +58,18 @@ public abstract class RoundCanPlayedSimultaneously extends TurnPassingStrategy {
         TimerTurn t = firstTurn(playersOrder);
         turns.add(t);
 
-        try {
-            t = nextTurn(playersOrder, t, phasesCount);
-        } catch (UnknownPlayer ignored) {
-        }
+        t = nextTurn(playersOrder, t, phasesCount);
 
         while (t.roundNumber() == 1 && t.phase() == 1) {
             turns.add(t);
 
-            try {
-                t = nextTurn(playersOrder, t, phasesCount);
-            } catch (UnknownPlayer ignored) {
-            }
+            t = nextTurn(playersOrder, t, phasesCount);
         }
 
         return new SimultaneousTurns(turns);
     }
 
-    private SimultaneousTurns buildRound(PlayersOrder playersOrder, TimerTurn from, int phasesCount) throws UnknownPlayer {
+    private SimultaneousTurns buildRound(PlayersOrder playersOrder, TimerTurn from, int phasesCount) {
         List<TimerTurn> turns = new ArrayList<>();
 
         int roundNumber = from.roundNumber();

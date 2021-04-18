@@ -18,7 +18,7 @@ public class RotatingTurnPassingStrategy extends RoundCanPlayedSimultaneously {
     }
 
     @Override
-    public TimerTurn nextTurn(PlayersOrder playersOrder, TimerTurn current, int phasesCount) throws UnknownPlayer {
+    public TimerTurn nextTurn(PlayersOrder playersOrder, TimerTurn current, int phasesCount) {
         RotatingTimerTurn c = (RotatingTimerTurn) current;
 
         int roundNumber = c.gameRound.roundNumber;

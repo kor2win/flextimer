@@ -1,12 +1,16 @@
 package com.kor2win.flextimer.timer.timeConstraint;
 
+import com.kor2win.flextimer.timer.turnFlow.*;
+
 import java.util.*;
 
 public class ConstrainedSimultaneousTurns {
     private final List<ConstrainedTimerTurn> constrainedTurns;
+    private final ConstrainedTimerTurn last;
 
     public ConstrainedSimultaneousTurns(List<ConstrainedTimerTurn> constrainedTurns) {
         this.constrainedTurns = constrainedTurns;
+        last = constrainedTurns.get(constrainedTurns.size() - 1);
     }
 
     public int size() {
@@ -21,7 +25,7 @@ public class ConstrainedSimultaneousTurns {
         constrainedTurns.forEach(ConstrainedTimerTurn::end);
     }
 
-    public void startAll() {
+    public void launchAll() {
         constrainedTurns.forEach(ConstrainedTimerTurn::start);
     }
 
@@ -39,5 +43,9 @@ public class ConstrainedSimultaneousTurns {
                 t.end();
             }
         });
+    }
+
+    public ConstrainedTimerTurn lastTurn() {
+        return last;
     }
 }

@@ -9,7 +9,7 @@ public class TurnFlow {
         this.config = config;
     }
 
-    public TimerTurn nextTurnOfSamePlayer(TimerTurn timerTurn) throws UnknownPlayer {
+    public TimerTurn nextTurnOfSamePlayer(TimerTurn timerTurn) {
         TimerTurn t = nextTurn(timerTurn);
 
         while (!t.player.equals(timerTurn.player)) {
@@ -19,7 +19,7 @@ public class TurnFlow {
         return t;
     }
 
-    private TimerTurn nextTurn(TimerTurn current) throws UnknownPlayer {
+    private TimerTurn nextTurn(TimerTurn current) {
         return turnPassingStrategy.nextTurn(config.playersOrder(), current, config.phasesCount());
     }
 
@@ -27,7 +27,7 @@ public class TurnFlow {
         return turnPassingStrategy.firstSimultaneousTurns(config.playersOrder(), config.phasesCount());
     }
 
-    public SimultaneousTurns nextRoundOfTurns(TimerTurn current) throws UnknownPlayer {
+    public SimultaneousTurns nextRoundOfTurns(TimerTurn current) {
         return turnPassingStrategy.simultaneousTurnsAfterTurn(config.playersOrder(), current, config.phasesCount());
     }
 }

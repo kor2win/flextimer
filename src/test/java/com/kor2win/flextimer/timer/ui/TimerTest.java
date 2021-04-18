@@ -5,12 +5,17 @@ import com.kor2win.flextimer.timer.timeConstraint.*;
 import com.kor2win.flextimer.turnPassingStrategies.*;
 import com.kor2win.flextimer.timeBanking.*;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.*;
+import org.mockito.*;
+import org.mockito.junit.jupiter.*;
 
 import java.time.*;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class TimerTest {
     private static final Duration increment = Duration.ofSeconds(1);
     private static final int PHASES_COUNT = 1;
@@ -25,49 +30,52 @@ public class TimerTest {
     private Timer t;
     private Timer tIncremented;
 
+
+    @Mock private TimerConfig timerConfig;
+    @Mock private TimeConstraintConfig timeConstraintConfig;
+    @Mock private TurnFlowConfig turnFlowConfig;
+
     @BeforeAll
-    public static void setUpPlayers() throws Exception {
+    public static void setUpPlayers() {
         turnPassingStrategy = new StraightTurnPassingStrategy(GameRound.FIRST);
-        playersOrder = buildPlayers();
-        p1 = playersOrder.first();
-        p2 = playersOrder.after(p1);
+        buildPlayers();
         p1_initDuration = Duration.ofSeconds(20);
         p2_initDuration = Duration.ofSeconds(30);
     }
 
     @BeforeEach
     public void setUpTimer() {
-        Config config = buildConfig();
+        buildConfig();
 
-        t = buildTimer(buildTurnDurationCalculator(), buildTimeBank(), config);
-        tIncremented = buildTimer(buildTurnDurationCalculatorWithIncrement(), buildTimeBank(), config);
+        t = buildTimer(buildTurnDurationCalculator(), buildTimeBank());
+        t.launch();
+
+        tIncremented = buildTimer(buildTurnDurationCalculatorWithIncrement(), buildTimeBank());
+        tIncremented.launch();
     }
 
-    private Timer buildTimer(TurnDurationCalculator turnDurationCalculator, TimeBank timeBank, Config config) {
-        TurnFlow turnFlow = new TurnFlow(turnPassingStrategy, config);
-        TimeConstraint timeConstraint = new TimeConstraint(turnDurationCalculator, timeBank, turnFlow, config);
+    private Timer buildTimer(TurnDurationCalculator turnDurationCalculator, TimeBank timeBank) {
+        TurnFlow turnFlow = new TurnFlow(turnPassingStrategy, turnFlowConfig);
+        TimeConstraint timeConstraint = new TimeConstraint(turnDurationCalculator, timeBank, turnFlow, timeConstraintConfig);
 
-        Timer t = new Timer(turnFlow, timeConstraint, config);
+        Timer t = new Timer(turnFlow, timeConstraint, timerConfig);
         t.setClock(Clock.fixed(Instant.now(), ZoneId.systemDefault()));
 
         return t;
     }
 
     private Timer buildTimerWithEmptyBank() {
-        return buildTimer(buildTurnDurationCalculator(), new PlayersTimeBank(), buildConfig());
+        Timer timer = buildTimer(buildTurnDurationCalculator(), new PlayersTimeBank());
+        timer.launch();
+
+        return timer;
     }
 
-    private Timer buildTimerWithConfig(TurnDurationCalculator turnDurationCalculator, Config config) {
-        return buildTimer(turnDurationCalculator, buildTimeBank(), config);
-    }
+    private static void buildPlayers() {
+        p1 = new Player("Anton");
+        p2 = new Player("Max");
 
-    private static PlayersOrder buildPlayers() {
-        Player[] arr = new Player[] {
-                new Player("Anton"),
-                new Player("Max")
-        };
-
-        return new PlayersOrder(arr);
+        playersOrder = new PlayersOrder(new Player[] {p1, p2});
     }
 
     private TurnDurationCalculator buildTurnDurationCalculator() {
@@ -91,12 +99,12 @@ public class TimerTest {
         timer.shiftClock(shift);
     }
 
-    private void passBackToCurrentPlayer(Timer t) throws Exception {
+    private void passBackToCurrentPlayer(Timer t) {
         t.passSimultaneousTurns();
         t.passSimultaneousTurns();
     }
 
-    private void depleteTimer(Timer timer) throws Exception {
+    private void depleteTimer(Timer timer) {
         if (timer.isPaused()) {
             timer.resume();
         }
@@ -107,26 +115,40 @@ public class TimerTest {
     }
 
     private ConstrainedTimerTurn getFirstTurn(Timer t) {
-        return t.getConstrainedSimultaneousTurns().get(0);
+        return t.getCurrentSimultaneousTurns().get(0);
     }
 
-    private Config buildConfig() {
-        Config config = new Config();
-        config.setPlayersOrder(playersOrder);
-        config.setPhasesCount(PHASES_COUNT);
-
-        return config;
+    private void buildConfig() {
+        lenient().when(timerConfig.pauseOnTurnPass()).thenReturn(false);
+        lenient().when(timeConstraintConfig.depleteOnZeroRemaining()).thenReturn(false);
+        lenient().when(turnFlowConfig.phasesCount()).thenReturn(PHASES_COUNT);
+        lenient().when(turnFlowConfig.playersOrder()).thenReturn(playersOrder);
     }
 
     @Test
-    public void canStartThenPauseThenResume() throws Exception {
+    public void whenOperatingNotStartedTimer_thenExceptionThrown() {
+        Timer t = buildTimer(buildTurnDurationCalculator(), buildTimeBank());
+
+        assertThrows(TimerNotLaunched.class, t::resume);
+        assertThrows(TimerNotLaunched.class, t::pause);
+        assertThrows(TimerNotLaunched.class, t::passSimultaneousTurns);
+        assertThrows(TimerNotLaunched.class, t::syncWithClock);
+    }
+
+    @Test
+    public void whenStartStarted_thenExceptionThrown() {
+        assertThrows(TimerAlreadyLaunched.class, t::launch);
+    }
+
+    @Test
+    public void canPauseThenResumeThenPause() {
         t.pause();
         t.resume();
         t.pause();
     }
 
     @Test
-    public void canPassTurn() throws Exception {
+    public void canPassTurn() {
         assertEquals(p1, getFirstTurn(t).player());
         t.passSimultaneousTurns();
         assertEquals(p2, getFirstTurn(t).player());
@@ -144,30 +166,42 @@ public class TimerTest {
     }
 
     @Test
-    public void whenBankedDurationForOnePlayerIsZero_thenIsDepleted() throws Exception {
+    public void whenBankedDurationForOnePlayerIsZero_thenIsDepleted() {
         depleteTimer(t);
 
         assertTrue(t.isDepleted());
     }
 
     @Test
-    public void whenPassOnPaused_thenExceptionThrown() throws Exception {
+    public void whenPassOnPaused_thenExceptionThrown() {
         t.pause();
 
         assertThrows(PassTurnOnPause.class, t::passSimultaneousTurns);
     }
 
     @Test
-    public void whenTryingOperateDepletedTimer_thenExceptionThrown() throws Exception {
-        depleteTimer(t);
+    public void whenPauseOnPaused_thenExceptionThrown() {
+        t.pause();
 
-        assertThrows(Depleted.class, t::pause);
-        assertThrows(Depleted.class, t::resume);
-        assertThrows(Depleted.class, t::passSimultaneousTurns);
+        assertThrows(TimerPaused.class, t::pause);
     }
 
     @Test
-    public void remainingDurationUnaffectedOverTimeOnPausedTimer() throws Exception {
+    public void whenResumeOnResumed_thenExceptionThrown() {
+        assertThrows(TimerNotPaused.class, t::resume);
+    }
+
+    @Test
+    public void whenTryingOperateDepletedTimer_thenExceptionThrown() {
+        depleteTimer(t);
+
+        assertThrows(TimerDepleted.class, t::pause);
+        assertThrows(TimerDepleted.class, t::resume);
+        assertThrows(TimerDepleted.class, t::passSimultaneousTurns);
+    }
+
+    @Test
+    public void remainingDurationUnaffectedOverTimeOnPausedTimer() {
         ConstrainedTimerTurn turn = getFirstTurn(t);
 
         Duration total = turn.remaining();
@@ -193,7 +227,7 @@ public class TimerTest {
     }
 
     @Test
-    public void remainingDurationStoredOnTurnPass() throws Exception {
+    public void remainingDurationStoredOnTurnPass() {
         Duration p1active = Duration.ofSeconds(5);
         Duration p2active = Duration.ofSeconds(4);
 
@@ -212,22 +246,18 @@ public class TimerTest {
     }
 
     @Test
-    public void whenEnabledStopOnTurnPass_thenTimerStoppedAfterTurnPass() throws Exception {
-        Config config = buildConfig();
-        config.setPauseOnTurnPass(true);
-        Timer timer = buildTimerWithConfig(buildTurnDurationCalculator(), config);
+    public void whenEnabledStopOnTurnPass_thenTimerStoppedAfterTurnPass() {
+        when(timerConfig.pauseOnTurnPass()).thenReturn(true);
 
-        timer.passSimultaneousTurns();
+        t.passSimultaneousTurns();
 
-        ConstrainedTimerTurn turn = getFirstTurn(timer);
+        ConstrainedTimerTurn turn = getFirstTurn(t);
         assertFalse(turn.isGoing());
     }
 
     @Test
     public void whenDepleteOnZeroRemainingEnabled_thenDepleted() {
-        Config config = buildConfig();
-        config.setDepleteOnZeroRemaining(true);
-        Timer tIncremented = buildTimerWithConfig(buildTurnDurationCalculatorWithIncrement(), config);
+        when(timeConstraintConfig.depleteOnZeroRemaining()).thenReturn(true);
 
         assertFalse(tIncremented.isDepleted());
 
@@ -240,7 +270,7 @@ public class TimerTest {
     }
 
     @Test
-    public void whenRunningMoreThanRemains_thenStoredRemainingIsZero() throws Exception {
+    public void whenRunningMoreThanRemains_thenStoredRemainingIsZero() {
         Duration extra = Duration.ofSeconds(1);
 
         shiftTimerClock(tIncremented, p1_initDuration.plus(extra));
@@ -263,7 +293,7 @@ public class TimerTest {
     }
 
     @Test
-    public void whenTimerPaused_thenCanNotStartTurn() throws Exception {
+    public void whenTimerPaused_thenCanNotStartTurn() {
         ConstrainedTimerTurn turn = getFirstTurn(t);
         assertTrue(turn.isGoing());
 
@@ -278,7 +308,7 @@ public class TimerTest {
     }
 
     @Test
-    public void whenTimerPausedAndTurnPausedAndTimerResumed_thenTurnPaused() throws Exception {
+    public void whenTimerPausedAndTurnPausedAndTimerResumed_thenTurnPaused() {
         ConstrainedTimerTurn turn = getFirstTurn(t);
 
         t.pause();
@@ -292,7 +322,7 @@ public class TimerTest {
     }
 
     @Test
-    public void whenTurnPausedAndTimerPausedAndTurnStartedAndTimerResumed_thenTurnIsGoing() throws Exception {
+    public void whenTurnPausedAndTimerPausedAndTurnStartedAndTimerResumed_thenTurnIsGoing() {
         ConstrainedTimerTurn turn = getFirstTurn(t);
         assertTrue(turn.isGoing());
 
@@ -308,7 +338,7 @@ public class TimerTest {
     }
 
     @Test
-    public void remainingUnchangedOnResume() throws Exception {
+    public void remainingUnchangedOnResume() {
         ConstrainedTimerTurn turn = getFirstTurn(t);
         Duration total = turn.remaining();
 
@@ -320,7 +350,7 @@ public class TimerTest {
     }
 
     @Test
-    public void alreadyPassedTurnNeverChanges() throws Exception {
+    public void alreadyPassedTurnNeverChanges() {
         ConstrainedTimerTurn turn = getFirstTurn(t);
         Duration remaining = turn.remaining();
 
@@ -333,15 +363,15 @@ public class TimerTest {
     }
 
     @Test
-    public void simultaneousRunOfTwoNotPassedTurns() {
-        Config config = buildConfig();
-
-        TurnFlow turnFlow = new TurnFlow(new StraightTurnPassingStrategy(), config);
-        TimeConstraint timeConstraint = new TimeConstraint(buildTurnDurationCalculator(), buildTimeBank(), turnFlow, config);
-        Timer timer = new Timer(turnFlow, timeConstraint, config);
+    public void simultaneousRunOfSeveralNotPassedTurns() {
+        TurnFlow turnFlow = new TurnFlow(new StraightTurnPassingStrategy(), turnFlowConfig);
+        TimeConstraint timeConstraint = new TimeConstraint(buildTurnDurationCalculator(), buildTimeBank(), turnFlow, timeConstraintConfig);
+        Timer timer = new Timer(turnFlow, timeConstraint, timerConfig);
         timer.setClock(Clock.fixed(Instant.now(), ZoneId.systemDefault()));
 
-        ConstrainedSimultaneousTurns turns = timer.getConstrainedSimultaneousTurns();
+        timer.launch();
+
+        ConstrainedSimultaneousTurns turns = timer.getCurrentSimultaneousTurns();
 
         ArrayList<Duration> before = new ArrayList<>(turns.size());
         Duration active = Duration.ofSeconds(10);
@@ -359,7 +389,7 @@ public class TimerTest {
     }
 
     @Test
-    public void turnInfo() throws Exception {
+    public void turnInfo() {
         ConstrainedTimerTurn turn = getFirstTurn(t);
         TurnInfo turnInfo = turn;
 

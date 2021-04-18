@@ -116,12 +116,7 @@ public class ConstrainedTimerTurn implements TurnInfo {
     }
 
     private TimerTurn nextTurnOfSamePlayer() {
-        try {
-            return timeConstraint.turnFlow.nextTurnOfSamePlayer(timerTurn);
-        } catch (UnknownPlayer ignored) {
-        }
-
-        return null;
+        return timeConstraint.turnFlow.nextTurnOfSamePlayer(timerTurn);
     }
 
     public Duration remaining() {

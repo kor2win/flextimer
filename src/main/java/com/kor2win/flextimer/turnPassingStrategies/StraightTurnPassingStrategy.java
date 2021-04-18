@@ -12,7 +12,7 @@ public class StraightTurnPassingStrategy extends RoundCanPlayedSimultaneously {
     }
 
     @Override
-    public TimerTurn nextTurn(PlayersOrder playersOrder, TimerTurn current, int phasesCount) throws UnknownPlayer {
+    public TimerTurn nextTurn(PlayersOrder playersOrder, TimerTurn current, int phasesCount) {
         int roundNumber = current.gameRound.roundNumber;
         int phase = current.gameRound.phase;
         Player player = current.player;
