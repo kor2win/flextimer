@@ -1,10 +1,10 @@
 package com.kor2win.flextimer.turnPassingStrategies;
 
-import com.kor2win.flextimer.timer.turnFlow.*;
+import com.kor2win.flextimer.engine.turnFlow.*;
 
 import java.util.*;
 
-public class TurnPassingStrategyFactory implements com.kor2win.flextimer.timer.app.TurnPassingStrategyFactory {
+public class TurnPassingStrategyFactory implements com.kor2win.flextimer.engine.app.TurnPassingStrategyFactory {
     public static final String TYPE_STRAIGHT = "straight";
     public static final String TYPE_ROTATING = "rotating";
     private static final Set<String> TYPES = new HashSet<>(Arrays.asList(TYPE_STRAIGHT, TYPE_ROTATING));

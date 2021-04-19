@@ -1,7 +1,7 @@
 package com.kor2win.flextimer.turnDurationCalculations;
 
-import com.kor2win.flextimer.timer.turnFlow.*;
-import com.kor2win.flextimer.timer.timeConstraint.*;
+import com.kor2win.flextimer.engine.turnFlow.*;
+import com.kor2win.flextimer.engine.timeConstraint.*;
 
 import java.time.*;
 

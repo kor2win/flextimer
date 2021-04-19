@@ -1,6 +1,6 @@
 package com.kor2win.flextimer.turnPassingStrategies;
 
-import com.kor2win.flextimer.timer.turnFlow.*;
+import com.kor2win.flextimer.engine.turnFlow.*;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

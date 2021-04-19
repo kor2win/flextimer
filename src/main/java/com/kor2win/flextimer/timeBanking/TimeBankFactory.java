@@ -1,10 +1,10 @@
 package com.kor2win.flextimer.timeBanking;
 
-import com.kor2win.flextimer.timer.timeConstraint.*;
+import com.kor2win.flextimer.engine.timeConstraint.*;
 
 import java.util.*;
 
-public class TimeBankFactory implements com.kor2win.flextimer.timer.app.TimeBankFactory {
+public class TimeBankFactory implements com.kor2win.flextimer.engine.app.TimeBankFactory {
     public static final String TYPE_PLAYERS = "players";
 
     private static final Set<String> TYPES = new HashSet<>(Collections.singletonList(TYPE_PLAYERS));

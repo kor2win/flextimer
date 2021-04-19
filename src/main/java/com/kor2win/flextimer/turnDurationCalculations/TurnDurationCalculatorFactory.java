@@ -1,11 +1,11 @@
 package com.kor2win.flextimer.turnDurationCalculations;
 
-import com.kor2win.flextimer.timer.timeConstraint.*;
+import com.kor2win.flextimer.engine.timeConstraint.*;
 
 import java.time.*;
 import java.util.*;
 
-public class TurnDurationCalculatorFactory implements com.kor2win.flextimer.timer.app.TurnDurationCalculatorFactory {
+public class TurnDurationCalculatorFactory implements com.kor2win.flextimer.engine.app.TurnDurationCalculatorFactory {
     public static final String TYPE_SIMPLE = "simple";
     public static final String TYPE_CHESS = "chess";
     private static final Set<String> TYPES = new HashSet<>(Arrays.asList(TYPE_SIMPLE, TYPE_CHESS));

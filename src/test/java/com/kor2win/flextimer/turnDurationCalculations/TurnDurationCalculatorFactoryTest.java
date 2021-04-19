@@ -1,6 +1,6 @@
 package com.kor2win.flextimer.turnDurationCalculations;
 
-import com.kor2win.flextimer.timer.timeConstraint.*;
+import com.kor2win.flextimer.engine.timeConstraint.*;
 import org.junit.jupiter.api.*;
 
 import java.time.*;

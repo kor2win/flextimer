@@ -1,17 +1,17 @@
 # Flextimer
 Timer engine for board games. Behaviour aspects can be developed independently and used in any combination:
-- turn sequencing - in what order players play their moves. Extends `com.kor2win.flextimer.timer.turnFlow.TurnPassingStrategy`
-- time banking - the way player's time stored. Implements `com.kor2win.flextimer.timer.timeConstraint.TimeBank`
-- time control - the way player's time changed. Implements `com.kor2win.flextimer.timer.timeConstraint.TurnDurationCalculator`
+- turn sequencing - in what order players play their moves. Extends `com.kor2win.flextimer.engine.turnFlow.TurnPassingStrategy`
+- time banking - the way player's time stored. Implements `com.kor2win.flextimer.engine.timeConstraint.TimeBank`
+- time control - the way player's time changed. Implements `com.kor2win.flextimer.engine.timeConstraint.TurnDurationCalculator`
 
 ### Getting started
 Some simple usage example:
 
 ```java
 
-import com.kor2win.flextimer.timer.turnFlow.*;
-import com.kor2win.flextimer.timer.timeConstraint.*;
-import com.kor2win.flextimer.timer.ui.*;
+import com.kor2win.flextimer.engine.turnFlow.*;
+import com.kor2win.flextimer.engine.timeConstraint.*;
+import com.kor2win.flextimer.engine.timer.*;
 import com.kor2win.flextimer.timeBanking.*;
 import com.kor2win.flextimer.turnDurationCalculations.*;
 import com.kor2win.flextimer.turnPassingStrategies.*;
