@@ -1,6 +1,6 @@
 package com.kor2win.flextimer.turnPassingStrategies;
 
-import com.kor2win.flextimer.timer.turnFlow.*;
+import com.kor2win.flextimer.engine.turnFlow.*;
 
 public class RotatingTurnPassingStrategy extends RoundCanPlayedSimultaneously {
     public RotatingTurnPassingStrategy() {
@@ -18,7 +18,7 @@ public class RotatingTurnPassingStrategy extends RoundCanPlayedSimultaneously {
     }
 
     @Override
-    public TimerTurn nextTurn(PlayersOrder playersOrder, TimerTurn current, int phasesCount) throws UnknownPlayer {
+    public TimerTurn nextTurn(PlayersOrder playersOrder, TimerTurn current, int phasesCount) {
         RotatingTimerTurn c = (RotatingTimerTurn) current;
 
         int roundNumber = c.gameRound.roundNumber;

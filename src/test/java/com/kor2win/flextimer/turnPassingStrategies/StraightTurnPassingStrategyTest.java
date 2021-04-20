@@ -1,6 +1,6 @@
 package com.kor2win.flextimer.turnPassingStrategies;
 
-import com.kor2win.flextimer.timer.turnFlow.*;
+import com.kor2win.flextimer.engine.turnFlow.*;
 
 import org.junit.jupiter.api.*;
 
@@ -13,7 +13,7 @@ public class StraightTurnPassingStrategyTest extends RoundCanPlayedSimultaneousl
     }
 
     @Test
-    public void wholeTurnPassed() throws Exception {
+    public void wholeTurnPassed() {
         TimerTurn t = afterWholeRoundPasses(firstTurn);
 
         assertEquals(2, t.roundNumber());

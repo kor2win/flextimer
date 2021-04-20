@@ -1,8 +1,10 @@
 package com.kor2win.flextimer.turnPassingStrategies;
 
-import com.kor2win.flextimer.timer.turnFlow.*;
+import com.kor2win.flextimer.engine.turnFlow.*;
 
 import org.junit.jupiter.api.*;
+
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +19,7 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
     protected TimerTurn firstTurn;
 
     @BeforeAll
-    public static void setUpPlayers() throws Exception {
+    public static void setUpPlayers() {
         playersOrder = buildPlayers();
         firstPlayer = playersOrder.first();
         secondPlayer = playersOrder.after(firstPlayer);
@@ -32,16 +34,14 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
     protected abstract RoundCanPlayedSimultaneously buildStrategy();
 
     protected static PlayersOrder buildPlayers() {
-        Player[] arr = {
+        return new PlayersOrder(Arrays.asList(
                 new Player("Anton"),
                 new Player("Max"),
                 new Player("Lisa")
-        };
-
-        return new PlayersOrder(arr);
+        ));
     }
 
-    protected TimerTurn afterWholeRoundPasses(TimerTurn t) throws UnknownPlayer {
+    protected TimerTurn afterWholeRoundPasses(TimerTurn t) {
         for (int i = 0; i < PHASES_COUNT - 1; i++) {
             t = afterWholePhasePasses(t);
         }
@@ -49,7 +49,7 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
         return t;
     }
 
-    protected TimerTurn afterWholePhasePasses(TimerTurn t) throws UnknownPlayer {
+    protected TimerTurn afterWholePhasePasses(TimerTurn t) {
         for (int i = 0; i < playersCount(); i++) {
             t = strategy.nextTurn(playersOrder, t, PHASES_COUNT);
         }
@@ -61,7 +61,7 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
         return playersOrder.size();
     }
 
-    protected void assertRound(SimultaneousTurns turns, TimerTurn firstInRound) throws UnknownPlayer {
+    protected void assertRound(SimultaneousTurns turns, TimerTurn firstInRound) {
         assertEquals(playersOrder.size(), turns.size());
         assertEquals(firstInRound, turns.get(0));
 
@@ -80,7 +80,7 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
     }
 
     @Test
-    public void turnAfter() throws Exception {
+    public void turnAfter() {
         TimerTurn t = strategy.nextTurn(playersOrder, firstTurn, PHASES_COUNT);
         assertEquals(1, t.roundNumber());
         assertEquals(1, t.phase());
@@ -88,7 +88,7 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
     }
 
     @Test
-    public void wholePhasePassed() throws Exception {
+    public void wholePhasePassed() {
         TimerTurn t = afterWholePhasePasses(firstTurn);
 
         assertEquals(1, t.roundNumber());
@@ -97,14 +97,14 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
     }
 
     @Test
-    public void firstRound() throws Exception {
+    public void firstRound() {
         SimultaneousTurns turns = strategy.firstSimultaneousTurns(playersOrder, PHASES_COUNT);
 
         assertRound(turns, firstTurn);
     }
 
     @Test
-    public void nextRound() throws Exception {
+    public void nextRound() {
         SimultaneousTurns turns = strategy.firstSimultaneousTurns(playersOrder, PHASES_COUNT);
         TimerTurn after = turns.lastTurn();
         turns = strategy.simultaneousTurnsAfterTurn(playersOrder, after, PHASES_COUNT);
