@@ -4,6 +4,8 @@ import com.kor2win.flextimer.engine.turnFlow.*;
 
 import org.junit.jupiter.api.*;
 
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class RoundCanPlayedSimultaneouslyTestBase {
@@ -32,13 +34,11 @@ public abstract class RoundCanPlayedSimultaneouslyTestBase {
     protected abstract RoundCanPlayedSimultaneously buildStrategy();
 
     protected static PlayersOrder buildPlayers() {
-        Player[] arr = {
+        return new PlayersOrder(Arrays.asList(
                 new Player("Anton"),
                 new Player("Max"),
                 new Player("Lisa")
-        };
-
-        return new PlayersOrder(arr);
+        ));
     }
 
     protected TimerTurn afterWholeRoundPasses(TimerTurn t) {

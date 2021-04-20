@@ -1,4 +1,4 @@
 package com.kor2win.flextimer.engine.turnFlow;
 
-public class IndexOutOfBounds extends TurnFlowException {
+public class IndexOutOfBounds extends PlayersException {
 }

@@ -7,7 +7,7 @@ import com.kor2win.flextimer.engine.timeConstraint.*;
 public class Config implements TimerConfig, TimeConstraintConfig, TurnFlowConfig {
     private boolean pauseOnTurnPass = false;
     private boolean depleteOnZeroRemaining = false;
-    private PlayersOrder playersOrder = new PlayersOrder(new Player[]{});
+    private PlayersOrder playersOrder;
     private int phasesCount = 1;
 
     @Override

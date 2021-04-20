@@ -9,15 +9,11 @@ import org.junit.jupiter.api.extension.*;
 import org.mockito.*;
 import org.mockito.junit.jupiter.*;
 
-import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TimerBuilderTest {
-    private static final Map<String, Object> ARGS_EMPTY = new HashMap<>();
-
     private TimerBuilder timerBuilder;
 
     @Mock private TimeBankFactory timeBankFactory;
@@ -51,9 +47,9 @@ class TimerBuilderTest {
                 .setTimerConfig(timerConfig)
                 .setTimeConstraintConfig(timeConstraintConfig)
                 .setTurnFlowConfig(turnFlowConfig)
-                .createTimeBank("b", ARGS_EMPTY)
-                .createTurnDurationCalculator("c", ARGS_EMPTY)
-                .createTurnPassingStrategy("s", ARGS_EMPTY)
+                .createTimeBank("b")
+                .createTurnDurationCalculator("c")
+                .createTurnPassingStrategy("s")
                 .build();
 
         assertNotNull(t);
@@ -67,9 +63,9 @@ class TimerBuilderTest {
 
         Timer t = timerBuilder
                 .setConfig(config)
-                .createTimeBank("b", ARGS_EMPTY)
-                .createTurnDurationCalculator("c", ARGS_EMPTY)
-                .createTurnPassingStrategy("s", ARGS_EMPTY)
+                .createTimeBank("b")
+                .createTurnDurationCalculator("c")
+                .createTurnPassingStrategy("s")
                 .build();
 
         assertNotNull(t);

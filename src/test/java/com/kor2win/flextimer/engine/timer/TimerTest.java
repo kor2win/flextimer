@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 public class TimerTest {
     private static final Player p1 = new Player("Anton");
     private static final Player p2 = new Player("Max");
-    private static final PlayersOrder playersOrder = new PlayersOrder(new Player[] {p1, p2});
+    private static final PlayersOrder playersOrder = new PlayersOrder(Arrays.asList(p1, p2));
     private static final Duration increment = Duration.ofSeconds(1);
     private static final Duration p1_initDuration = Duration.ofSeconds(20);
     private static final Duration p2_initDuration = Duration.ofSeconds(30);

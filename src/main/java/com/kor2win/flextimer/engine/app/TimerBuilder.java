@@ -8,6 +8,8 @@ import com.kor2win.flextimer.engine.timer.Timer;
 import java.util.*;
 
 public class TimerBuilder {
+    private static final Map<String, Object> ARGS_EMPTY = new HashMap<>();
+
     private final TimeBankFactory bankFactory;
     private final TurnDurationCalculatorFactory calculatorFactory;
     private final TurnPassingStrategyFactory turnPassingStrategyFactory;
@@ -61,16 +63,28 @@ public class TimerBuilder {
         return this;
     }
 
+    public TimerBuilder createTimeBank(String type) {
+        return this.createTimeBank(type, ARGS_EMPTY);
+    }
+
     public TimerBuilder createTurnDurationCalculator(String type, Map<String, Object> arguments) {
         this.turnDurationCalculator = calculatorFactory.make(type, arguments);
 
         return this;
     }
 
+    public TimerBuilder createTurnDurationCalculator(String type) {
+        return this.createTurnDurationCalculator(type, ARGS_EMPTY);
+    }
+
     public TimerBuilder createTurnPassingStrategy(String type, Map<String, Object> arguments) {
         this.turnPassingStrategy = turnPassingStrategyFactory.make(type, arguments);
 
         return this;
+    }
+
+    public TimerBuilder createTurnPassingStrategy(String type) {
+        return this.createTurnPassingStrategy(type, ARGS_EMPTY);
     }
 
     public Timer build() {

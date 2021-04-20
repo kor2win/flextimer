@@ -2,6 +2,8 @@ package com.kor2win.flextimer.engine.turnFlow;
 
 import org.junit.jupiter.api.*;
 
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PlayersOrderTest {
@@ -11,9 +13,17 @@ public class PlayersOrderTest {
     private static final Player p4 = new Player("d");
     private static PlayersOrder playersOrder;
 
+    private void assertOrdersEquals(PlayersOrder expected, PlayersOrder actual) {
+        assertEquals(expected.size(), actual.size());
+
+        for (int i = 0; i < expected.size(); i++) {
+            assertEquals(expected.get(i), actual.get(i));
+        }
+    }
+
     @BeforeAll
     public static void setUp() {
-        playersOrder = new PlayersOrder(new Player[]{p1, p2, p3, p4});
+        playersOrder = new PlayersOrder(Arrays.asList(p1, p2, p3, p4));
     }
 
     @Test
@@ -52,5 +62,28 @@ public class PlayersOrderTest {
         Player unknownPlayer = new Player("some player");
         assertThrows(UnknownPlayer.class, () -> playersOrder.before(unknownPlayer));
         assertThrows(UnknownPlayer.class, () -> playersOrder.after(unknownPlayer));
+    }
+
+    @Test
+    public void builder() {
+        PlayersOrder o = PlayersOrder
+                .builder()
+                .add(p1)
+                .add(p2)
+                .add(p3)
+                .add(p4)
+                .build();
+
+        assertOrdersEquals(playersOrder, o);
+    }
+
+    @Test
+    public void whenConstructingByEmptyArray_thenExceptionThrown() {
+        assertThrows(InvalidPlayersInitialization.class, () -> new PlayersOrder(Collections.emptyList()));
+    }
+
+    @Test
+    public void whenConstructingWithDuplicates_thenExceptionThrown() {
+        assertThrows(InvalidPlayersInitialization.class, () -> new PlayersOrder(Arrays.asList(p1, p1)));
     }
 }

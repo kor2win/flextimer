@@ -3,56 +3,78 @@ package com.kor2win.flextimer.engine.turnFlow;
 import java.util.*;
 
 public class PlayersOrder {
-    private final LinkedList<Player> players;
+    private final Map<Player, Node> map;
+    private final Node head;
+    private final Node tail;
 
-    public PlayersOrder(Player[] players) {
-        this.players = new LinkedList<>(Arrays.asList(players));
+    public PlayersOrder(Collection<? extends Player> players) {
+        if (players.isEmpty()) {
+            throw new InvalidPlayersInitialization("Empty list");
+        }
+
+        map = new HashMap<>(players.size());
+
+        Iterator<? extends Player> iter = players.iterator();
+
+        Node prev = head = createUniqueNode(iter.next());
+        while(iter.hasNext()) {
+            linkNodes(prev, createUniqueNode(iter.next()));
+            prev = prev.next;
+        }
+
+        tail = prev;
+
+        linkNodes(tail, head);
+    }
+
+    private Node createUniqueNode(Player player) {
+        Node node = new Node(player);
+        Node put = map.putIfAbsent(player, node);
+
+        if (put != null) {
+            throw new InvalidPlayersInitialization("Contains duplicates");
+        }
+
+        return node;
+    }
+
+    private void linkNodes(Node prev, Node next) {
+        next.prev = prev;
+        prev.next = next;
+    }
+
+    public static PlayersOrderBuilder builder() {
+        return new PlayersOrderBuilder();
     }
 
     public Player first() {
-        return players.getFirst();
+        return head.player;
     }
 
     public Player last() {
-        return players.getLast();
+        return tail.player;
     }
 
     public Player after(Player player) {
-        if (player.equals(last())) {
-            return first();
+        Node n = map.get(player);
+        if (n == null) {
+            throw new UnknownPlayer(player);
         }
 
-        Player prev = null;
-        for (Player p : players) {
-            if (prev != null && prev.equals(player)) {
-                return p;
-            }
-
-            prev = p;
-        }
-
-        throw new UnknownPlayer(player);
+        return n.next.player;
     }
 
     public Player before(Player player) {
-        if (player.equals(first())) {
-            return last();
+        Node n = map.get(player);
+        if (n == null) {
+            throw new UnknownPlayer(player);
         }
 
-        Player prev = null;
-        for (Player p : players) {
-            if (prev != null && p.equals(player)) {
-                return prev;
-            }
-
-            prev = p;
-        }
-
-        throw new UnknownPlayer(player);
+        return n.prev.player;
     }
 
     public int size() {
-        return players.size();
+        return map.size();
     }
 
     public Player get(int index) {
@@ -60,6 +82,21 @@ public class PlayersOrder {
             throw new IndexOutOfBounds();
         }
 
-        return players.get(index);
+        Node n = head;
+        for (int i = 0; i < index; i++) {
+            n = n.next;
+        }
+
+        return n.player;
+    }
+
+    private static class Node {
+        public Node prev;
+        public Node next;
+        public final Player player;
+
+        public Node(Player player) {
+            this.player = player;
+        }
     }
 }

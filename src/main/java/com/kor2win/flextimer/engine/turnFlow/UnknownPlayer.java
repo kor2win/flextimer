@@ -1,7 +1,7 @@
 package com.kor2win.flextimer.engine.turnFlow;
 
 
-public class UnknownPlayer extends TurnFlowException {
+public class UnknownPlayer extends PlayersException {
     public final Player player;
 
     public UnknownPlayer(Player player, Throwable cause) {
