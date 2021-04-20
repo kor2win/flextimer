@@ -9,21 +9,22 @@ Some simple usage example:
 
 ```java
 
-import com.kor2win.flextimer.engine.turnFlow.*;
+import com.kor2win.flextimer.engine.app.*;
 import com.kor2win.flextimer.engine.timeConstraint.*;
-import com.kor2win.flextimer.engine.timer.*;
-import com.kor2win.flextimer.timeBanking.*;
-import com.kor2win.flextimer.turnDurationCalculations.*;
-import com.kor2win.flextimer.turnPassingStrategies.*;
+import com.kor2win.flextimer.engine.timer.Timer;
+import com.kor2win.flextimer.engine.turnFlow.*;
+import com.kor2win.flextimer.timeBanking.TimeBankFactory;
+import com.kor2win.flextimer.turnDurationCalculations.TurnDurationCalculatorFactory;
+import com.kor2win.flextimer.turnPassingStrategies.TurnPassingStrategyFactory;
 
-import java.time.*;
+import java.util.*;
 
 abstract class MyTimer {
     public void main(String[] args) throws Exception {
         Timer timer = buildTimer();
 
         while (true) {
-            ConstrainedSimultaneousTurns turns = timer.getConstrainedSimultaneousTurns();
+            ConstrainedSimultaneousTurns turns = timer.getCurrentSimultaneousTurns();
 
             for (int i = 0; i < turns.size(); i++) {
                 ConstrainedTimerTurn turn = turns.get(i);
@@ -36,38 +37,38 @@ abstract class MyTimer {
 
     private void runTurnHandling(ConstrainedTimerTurn turn) {
         while (true) {
-            SomeSignal input = readInputFromPlayer();
+            SomeSignal signal = readInputSignal();
 
-            if (input.isPassTurn()) {
+            if (signal == SomeSignal.PASS_TURN) {
                 turn.end();
 
                 break;
-            } else if (input.isPause()) {
+            } else if (signal == SomeSignal.PAUSE) {
                 turn.pause();
-            } else if (input.isResume()) {
+            } else if (signal == SomeSignal.RESUME) {
                 turn.start();
             }
         }
     }
 
-    abstract protected SomeSignal readInputFromPlayer();
+    abstract protected SomeSignal readInputSignal();
 
-    private Timer buildTimer() throws IndexOutOfBounds {
+    private Timer buildTimer() {
+        TimerBuilder timerBuilder = new TimerBuilder(
+                new TimeBankFactory(),
+                new TurnDurationCalculatorFactory(),
+                new TurnPassingStrategyFactory()
+        );
+
         PlayersOrder playersOrder = buildPlayersOrder();
-
         Config config = buildConfig(playersOrder);
 
-        TurnPassingStrategy turnPassingStrategy = new StraightTurnPassingStrategy();
-
-        TurnFlow turnFlow = new TurnFlow(turnPassingStrategy, config);
-
-
-        TurnDurationCalculator turnDurationCalculator = new SimpleTurnDurationCalculator();
-        PlayersTimeBank timeBank = buildTimeBank(playersOrder);
-
-        TimeConstraint timeConstraint = new TimeConstraint(turnDurationCalculator, timeBank, turnFlow, config);
-
-        return new Timer(turnFlow, timeConstraint, config);
+        return timerBuilder
+                .setConfig(config)
+                .createTimeBank(TimeBankFactory.TYPE_PLAYERS)
+                .createTurnDurationCalculator(TurnDurationCalculatorFactory.TYPE_SIMPLE)
+                .createTurnPassingStrategy(TurnPassingStrategyFactory.TYPE_STRAIGHT)
+                .build();
     }
 
     private Config buildConfig(PlayersOrder playersOrder) {
@@ -82,29 +83,16 @@ abstract class MyTimer {
     }
 
     private PlayersOrder buildPlayersOrder() {
-        return new PlayersOrder(new Player[] {
+        return new PlayersOrder(Arrays.asList(
                 new Player("Anton"),
                 new Player("Max")
-        });
-    }
-
-    private PlayersTimeBank buildTimeBank(PlayersOrder playersOrder) throws IndexOutOfBounds {
-        PlayersTimeBank timeBank = new PlayersTimeBank();
-        Duration total = Duration.ofMinutes(10);
-
-        for (int i = 0; i < playersOrder.size(); i++) {
-            timeBank.savePlayerRemaining(playersOrder.get(i), total);
-        }
-
-        return timeBank;
+        ));
     }
 }
 
-interface SomeSignal {
-    boolean isPassTurn();
-
-    boolean isPause();
-
-    boolean isResume();
+enum SomeSignal {
+    PASS_TURN,
+    PAUSE,
+    RESUME
 }
 ```
